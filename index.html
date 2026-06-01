@@ -1,0 +1,2178 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, user-scalable=no"
+        />
+        <link rel="manifest" href="manifest.json" />
+        <meta name="theme-color" content="#4a148c" />
+        <link rel="apple-touch-icon" href="icons/icon-192.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+            name="apple-mobile-web-app-status-bar-style"
+            content="black-translucent"
+        />
+        <meta name="apple-mobile-web-app-title" content="Кубики" />
+        <meta
+            name="description"
+            content="Cubes puzzle game - match and remove groups of same-colored cubes"
+        />
+        <title>Кубики</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                background: #0d0d0d;
+                color: #fff;
+                font-family: "Courier New", Courier, monospace;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                user-select: none;
+                -webkit-user-select: none;
+                overflow: hidden;
+            }
+            #wrapper {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+                padding: 12px;
+            }
+            #title-row {
+                display: flex;
+                align-items: flex-end;
+                justify-content: center;
+                gap: 6px;
+                animation: titleGlow 3s ease-in-out infinite;
+                will-change: filter;
+            }
+            .letter-grid {
+                display: grid;
+                grid-template-columns: repeat(5, 8px);
+                gap: 1px;
+            }
+            .letter-cell {
+                width: 8px;
+                height: 8px;
+                border-radius: 1.5px;
+            }
+            @keyframes titleGlow {
+                0%,
+                100% {
+                    filter: drop-shadow(0 0 8px rgba(252, 228, 168, 0.4))
+                        drop-shadow(0 0 20px rgba(252, 228, 168, 0.2));
+                }
+                50% {
+                    filter: drop-shadow(0 0 14px rgba(252, 228, 168, 0.6))
+                        drop-shadow(0 0 30px rgba(252, 228, 168, 0.3));
+                }
+            }
+            #game-area {
+                display: flex;
+                gap: 20px;
+                align-items: flex-start;
+            }
+            #board-container {
+                position: relative;
+            }
+            #board {
+                display: block;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            .overlay {
+                position: absolute;
+                inset: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: rgba(10, 10, 10, 0.78);
+                backdrop-filter: blur(6px);
+                -webkit-backdrop-filter: blur(6px);
+                z-index: 10;
+                border-radius: 4px;
+            }
+            .overlay.hidden {
+                display: none;
+            }
+            .overlay h2 {
+                font-size: 1.4rem;
+                margin-bottom: 8px;
+            }
+            .overlay .score-text {
+                font-size: 1.1rem;
+                margin-bottom: 6px;
+                color: #ccc;
+            }
+            .overlay button {
+                padding: 12px 32px;
+                background: linear-gradient(135deg, #fce4a8, #b8e8c8);
+                color: #1a1a2e;
+                border: none;
+                font-family: inherit;
+                font-size: 1.1rem;
+                font-weight: bold;
+                cursor: pointer;
+                border-radius: 8px;
+                transition:
+                    transform 0.1s,
+                    box-shadow 0.2s;
+                box-shadow: 0 2px 12px rgba(252, 228, 168, 0.3);
+            }
+            .overlay button:hover {
+                transform: scale(1.05);
+                box-shadow: 0 4px 20px rgba(252, 228, 168, 0.5);
+            }
+
+            .overlay-lb {
+                width: 85%;
+                max-width: 360px;
+                margin-bottom: 16px;
+            }
+            .overlay-lb .olb-title {
+                font-size: 0.7rem;
+                color: #fce4a8;
+                text-transform: uppercase;
+                letter-spacing: 0.15em;
+                text-align: center;
+                margin-bottom: 8px;
+            }
+            .overlay-lb .olb-row {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                margin-bottom: 3px;
+                font-size: 0.75rem;
+                padding: 2px 6px;
+                border-radius: 3px;
+            }
+            .overlay-lb .olb-row:nth-child(odd) {
+                background: rgba(255, 255, 255, 0.03);
+            }
+            .overlay-lb .olb-row.clickable {
+                cursor: pointer;
+                transition:
+                    background 0.15s,
+                    transform 0.1s;
+            }
+            .overlay-lb .olb-row.clickable:hover {
+                background: rgba(252, 228, 168, 0.12) !important;
+                transform: translateX(2px);
+            }
+            .olb-replay {
+                color: #fce4a8;
+                font-size: 0.65rem;
+                opacity: 0.5;
+                transition: opacity 0.15s;
+                margin-left: 2px;
+            }
+            .overlay-lb .olb-row.clickable:hover .olb-replay {
+                opacity: 1;
+            }
+            .overlay-lb .olb-rank {
+                min-width: 18px;
+                text-align: right;
+                font-variant-numeric: tabular-nums;
+            }
+            .overlay-lb .olb-score {
+                font-weight: bold;
+                margin-left: auto;
+                font-variant-numeric: tabular-nums;
+            }
+            .overlay-lb .olb-date {
+                color: #555;
+                font-size: 0.55rem;
+            }
+            .overlay-lb .olb-empty {
+                color: #555;
+                font-size: 0.65rem;
+                text-align: center;
+                padding: 10px 0;
+            }
+
+            #side {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                min-width: 150px;
+                max-width: 180px;
+            }
+            .info-box {
+                background: rgba(20, 20, 30, 0.75);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 6px;
+                padding: 10px 12px;
+            }
+            .info-box .label {
+                font-size: 0.65rem;
+                color: #888;
+                text-transform: uppercase;
+                letter-spacing: 0.15em;
+                margin-bottom: 2px;
+            }
+            .info-box .value {
+                font-size: 1.2rem;
+                font-weight: bold;
+            }
+            .info-box .value.score {
+                color: #fff;
+            }
+            .info-box .value.group-val {
+                color: #fce4a8;
+            }
+            .info-box .value.cubes-left {
+                color: #b8e8c8;
+            }
+
+            #play-side-btn {
+                padding: 10px 0;
+                width: 100%;
+                background: linear-gradient(135deg, #fce4a8, #b8e8c8);
+                color: #1a1a2e;
+                border: none;
+                font-family: inherit;
+                font-size: 0.85rem;
+                font-weight: bold;
+                letter-spacing: 0.1em;
+                cursor: pointer;
+                border-radius: 6px;
+                transition:
+                    transform 0.1s,
+                    box-shadow 0.2s;
+                box-shadow: 0 2px 12px rgba(252, 228, 168, 0.3);
+            }
+            #play-side-btn:hover {
+                transform: scale(1.03);
+                box-shadow: 0 4px 20px rgba(252, 228, 168, 0.5);
+            }
+
+            #lb-btn {
+                padding: 8px 0;
+                width: 100%;
+                background: rgba(255, 255, 255, 0.06);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                color: #999;
+                font-family: inherit;
+                font-size: 0.75rem;
+                font-weight: bold;
+                letter-spacing: 0.08em;
+                cursor: pointer;
+                border-radius: 6px;
+                transition:
+                    background 0.15s,
+                    color 0.15s,
+                    border-color 0.15s;
+            }
+            #lb-btn:hover {
+                background: rgba(255, 255, 255, 0.1);
+                color: #fff;
+                border-color: rgba(255, 255, 255, 0.2);
+            }
+
+            .stats-box {
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 6px;
+                padding: 8px 10px;
+            }
+            .stats-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .stats-cell {
+                display: flex;
+                align-items: center;
+                gap: 3px;
+            }
+            .stats-cell .swatch {
+                width: 10px;
+                height: 10px;
+                border-radius: 2px;
+                flex-shrink: 0;
+            }
+            .stats-cell .count {
+                font-size: 0.7rem;
+                color: #ccc;
+                font-variant-numeric: tabular-nums;
+            }
+
+            #side-btns {
+                display: flex;
+                gap: 6px;
+            }
+            #side-btns button {
+                flex: 1;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 6px;
+                color: #999;
+                font-family: inherit;
+                font-size: 0.6rem;
+                font-weight: bold;
+                letter-spacing: 0.06em;
+                padding: 6px 4px;
+                cursor: pointer;
+                transition:
+                    background 0.15s,
+                    color 0.15s,
+                    border-color 0.15s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                white-space: nowrap;
+            }
+            #side-btns button:hover {
+                background: rgba(255, 255, 255, 0.1);
+                color: #fff;
+                border-color: rgba(255, 255, 255, 0.2);
+            }
+            #side-btns button.active {
+                color: #fce4a8;
+                border-color: rgba(252, 228, 168, 0.3);
+            }
+            #side-btns button s {
+                text-decoration: line-through;
+                text-decoration-color: #f66;
+            }
+
+            #bonus-popup {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 20;
+                pointer-events: none;
+                font-size: 1.5rem;
+                font-weight: bold;
+                font-family: inherit;
+                color: #fff;
+                text-shadow:
+                    0 0 3px rgba(0, 0, 0, 1),
+                    0 0 3px rgba(0, 0, 0, 1),
+                    2px 2px 4px rgba(0, 0, 0, 0.9),
+                    -2px -2px 4px rgba(0, 0, 0, 0.9),
+                    0 0 18px rgba(252, 228, 168, 0.7),
+                    0 0 40px rgba(252, 228, 168, 0.35);
+                opacity: 0;
+                transition:
+                    opacity 0.3s,
+                    transform 0.3s;
+                white-space: nowrap;
+            }
+            #bonus-popup.show {
+                opacity: 1;
+                transform: translate(-50%, -60%);
+            }
+            #bonus-popup.fade {
+                opacity: 0;
+                transform: translate(-50%, -80%);
+            }
+        </style>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="title-row"></div>
+            <div id="game-area">
+                <div id="board-container">
+                    <canvas id="board"></canvas>
+                    <div id="bonus-popup"></div>
+                    <div id="start-overlay" class="overlay">
+                        <div class="overlay-lb">
+                            <div class="olb-title">Топ-10</div>
+                            <div id="overlay-lb-content"></div>
+                        </div>
+                    </div>
+                    <div id="gameover-overlay" class="overlay hidden">
+                        <h2 style="color: #f0a8b8">КОНЕЦ ИГРЫ</h2>
+                        <p class="score-text" id="final-score"></p>
+                        <p
+                            class="score-text"
+                            id="final-bonus"
+                            style="
+                                color: #fce4a8;
+                                font-size: 0.85rem;
+                                display: none;
+                            "
+                        ></p>
+                        <button id="restart-btn">ЗАНОВО</button>
+                    </div>
+                </div>
+                <div id="side">
+                    <div id="side-btns">
+                        <button id="undo-btn">↩ ОТМЕНА</button>
+                        <button id="sound-btn" class="active">♪</button>
+                        <button id="lang-toggle">EN</button>
+                    </div>
+                    <div class="info-box">
+                        <p class="label">Счёт</p>
+                        <p class="value score" id="score-val">0</p>
+                    </div>
+                    <div class="info-box">
+                        <p class="label">Выделено</p>
+                        <p class="value group-val" id="group-val">0</p>
+                    </div>
+                    <div class="info-box">
+                        <p class="label">Осталось</p>
+                        <p class="value cubes-left" id="cubes-left">300</p>
+                    </div>
+                    <div class="stats-box" id="stats-box">
+                        <div id="stats-content"></div>
+                    </div>
+                    <button id="play-side-btn">ИГРАТЬ</button>
+                    <button id="lb-btn">ТОП-10</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // ============ CONSTANTS ============
+            const COLS = 20,
+                ROWS = 15,
+                CELL = 28;
+            const BW = COLS * CELL,
+                BH = ROWS * CELL;
+            const NUM_COLORS = 4;
+            const PART_STRIDE = 7 * 4;
+
+            const SHINE_HEIGHT = 0.38,
+                SHINE_OPACITY = 0.45,
+                SPECULAR_X = 0.28,
+                SPECULAR_Y = 0.22;
+            const SPECULAR_RX = 0.08,
+                SPECULAR_RY = 0.05,
+                SHADOW_START = 0.65,
+                GLOW_OPACITY = 0.08;
+
+            const COLORS = [
+                {
+                    base: "#a8d8ea",
+                    light: "#d0eef8",
+                    mid: "#88c8dc",
+                    dark: "#68a8bc",
+                    glow: [168, 216, 234],
+                },
+                {
+                    base: "#fce4a8",
+                    light: "#fef0cc",
+                    mid: "#f0d080",
+                    dark: "#d4b058",
+                    glow: [252, 228, 168],
+                },
+                {
+                    base: "#d4b8e8",
+                    light: "#e8d4f4",
+                    mid: "#b898d0",
+                    dark: "#9878b0",
+                    glow: [212, 184, 232],
+                },
+                {
+                    base: "#b8e8c8",
+                    light: "#d4f4e0",
+                    mid: "#90d0a8",
+                    dark: "#70b088",
+                    glow: [184, 232, 200],
+                },
+            ];
+
+            const PIXEL_MAPS = {
+                К: [
+                    [1, 0, 0, 0, 1],
+                    [1, 0, 0, 1, 0],
+                    [1, 0, 1, 0, 0],
+                    [1, 0, 0, 1, 0],
+                    [1, 0, 0, 0, 1],
+                ],
+                У: [
+                    [1, 0, 0, 0, 1],
+                    [0, 1, 0, 1, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0],
+                ],
+                Б: [
+                    [1, 1, 1, 1, 0],
+                    [1, 0, 0, 0, 0],
+                    [1, 1, 1, 1, 0],
+                    [1, 0, 0, 0, 1],
+                    [1, 1, 1, 1, 0],
+                ],
+                И: [
+                    [1, 0, 0, 0, 1],
+                    [1, 0, 0, 1, 1],
+                    [1, 0, 1, 0, 1],
+                    [1, 1, 0, 0, 1],
+                    [1, 0, 0, 0, 1],
+                ],
+                C: [
+                    [0, 1, 1, 1, 1],
+                    [1, 0, 0, 0, 0],
+                    [1, 0, 0, 0, 0],
+                    [1, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 1],
+                ],
+                U: [
+                    [1, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 1],
+                    [1, 0, 0, 0, 1],
+                    [0, 1, 0, 0, 1],
+                    [0, 0, 1, 1, 0],
+                ],
+                B: [
+                    [1, 1, 1, 1, 0],
+                    [1, 0, 0, 0, 1],
+                    [1, 1, 1, 1, 0],
+                    [1, 0, 0, 0, 1],
+                    [1, 1, 1, 1, 0],
+                ],
+                E: [
+                    [1, 1, 1, 1, 1],
+                    [1, 0, 0, 0, 0],
+                    [1, 1, 1, 1, 0],
+                    [1, 0, 0, 0, 0],
+                    [1, 1, 1, 1, 1],
+                ],
+                S: [
+                    [0, 1, 1, 1, 1],
+                    [1, 0, 0, 0, 0],
+                    [0, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 1],
+                    [1, 1, 1, 1, 0],
+                ],
+            };
+
+            const TITLE_COLORS = [
+                COLORS[0],
+                COLORS[1],
+                COLORS[2],
+                COLORS[3],
+                COLORS[0],
+                COLORS[1],
+            ];
+
+            const LB_KEY = "cubes_leaderboard";
+            const LB_MAX = 10,
+                UNDO_MAX = 20,
+                REMOVE_DURATION = 350,
+                FALL_SPEED = 800,
+                COMPACT_DURATION = 200,
+                PERFECT_CLEAR_BONUS = 2000;
+
+            function easeOutQuad(t) {
+                return t * (2 - t);
+            }
+
+            // ============ SOUND SYSTEM ============
+            const SOUND_KEY = "cubes_sound";
+            let soundEnabled = true;
+            let audioCtx = null;
+
+            function initAudio() {
+                if (!audioCtx && soundEnabled) {
+                    try {
+                        audioCtx = new (
+                            window.AudioContext || window.webkitAudioContext
+                        )();
+                    } catch (e) {
+                        soundEnabled = false;
+                    }
+                }
+                if (audioCtx && audioCtx.state === "suspended")
+                    audioCtx.resume().catch(() => {});
+            }
+
+            function loadSoundPref() {
+                try {
+                    if (localStorage.getItem(SOUND_KEY) === "off")
+                        soundEnabled = false;
+                } catch {}
+            }
+            function saveSoundPref() {
+                try {
+                    localStorage.setItem(
+                        SOUND_KEY,
+                        soundEnabled ? "on" : "off",
+                    );
+                } catch {}
+            }
+
+            function toggleSound() {
+                soundEnabled = !soundEnabled;
+                if (soundEnabled) initAudio();
+                saveSoundPref();
+                updateSoundBtn();
+            }
+
+            const soundBtnEl = document.getElementById("sound-btn");
+            function updateSoundBtn() {
+                if (soundBtnEl) {
+                    soundBtnEl.innerHTML = soundEnabled ? "♪" : "<s>♪</s>";
+                    soundBtnEl.classList.toggle("active", soundEnabled);
+                }
+            }
+
+            function playTone(freq, duration, volume, type) {
+                if (!soundEnabled || !audioCtx) return;
+                try {
+                    const osc = audioCtx.createOscillator(),
+                        gain = audioCtx.createGain();
+                    osc.type = type || "sine";
+                    osc.frequency.value = freq;
+                    const v = Math.min(volume || 0.15, 0.3);
+                    gain.gain.setValueAtTime(v, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(
+                        0.001,
+                        audioCtx.currentTime + duration,
+                    );
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + duration);
+                } catch (e) {}
+            }
+
+            function sfxRemove(groupSize) {
+                const baseFreq = 440 + Math.min(groupSize, 20) * 20,
+                    vol = Math.min(0.08 + groupSize * 0.008, 0.2);
+                playTone(baseFreq, 0.25, vol, "sine");
+                setTimeout(
+                    () => playTone(baseFreq * 1.5, 0.15, vol * 0.5, "sine"),
+                    30,
+                );
+                if (groupSize >= 5)
+                    setTimeout(
+                        () => playTone(baseFreq * 2, 0.12, vol * 0.3, "sine"),
+                        60,
+                    );
+            }
+            function sfxBigBonus() {
+                [523, 659, 784, 1047].forEach((f, i) =>
+                    setTimeout(() => playTone(f, 0.2, 0.12, "sine"), i * 70),
+                );
+            }
+            function sfxPerfectClear() {
+                [523, 587, 659, 784, 880, 1047].forEach((f, i) => {
+                    setTimeout(() => playTone(f, 0.3, 0.15, "sine"), i * 80);
+                    setTimeout(
+                        () => playTone(f * 1.5, 0.15, 0.06, "triangle"),
+                        i * 80 + 40,
+                    );
+                });
+            }
+            function sfxUndo() {
+                playTone(400, 0.12, 0.08, "sine");
+                setTimeout(() => playTone(300, 0.12, 0.06, "sine"), 50);
+            }
+            function sfxGameOver() {
+                playTone(440, 0.3, 0.1, "sine");
+                setTimeout(() => playTone(370, 0.3, 0.08, "sine"), 200);
+                setTimeout(() => playTone(330, 0.5, 0.06, "sine"), 400);
+            }
+            function sfxHover() {
+                playTone(800, 0.06, 0.04, "sine");
+            }
+            function sfxLand() {
+                playTone(120, 0.1, 0.06, "triangle");
+            }
+            function sfxCompact() {
+                playTone(200, 0.08, 0.04, "sine");
+                setTimeout(() => playTone(250, 0.06, 0.03, "sine"), 30);
+            }
+            function sfxStart() {
+                playTone(523, 0.15, 0.1, "sine");
+                setTimeout(() => playTone(659, 0.15, 0.1, "sine"), 100);
+                setTimeout(() => playTone(784, 0.2, 0.12, "sine"), 200);
+            }
+
+            // ============ LOCALIZATION ============
+            const LANG_KEY = "cubes_lang";
+            let lang = "ru";
+
+            function getLocale() {
+                return lang === "ru" ? "ru-RU" : "en-US";
+            }
+
+            const T = {
+                title: { ru: "КУБИКИ", en: "CUBES" },
+                play: { ru: "ИГРАТЬ", en: "PLAY" },
+                top10: { ru: "ТОП-10", en: "TOP-10" },
+                restart: { ru: "ЗАНОВО", en: "AGAIN" },
+                gameOver: { ru: "КОНЕЦ ИГРЫ", en: "GAME OVER" },
+                score: { ru: "Счёт", en: "Score" },
+                groupVal: { ru: "Выделено", en: "Selected" },
+                cubesLeft: { ru: "Осталось", en: "Remaining" },
+                leaderboard: { ru: "Топ-10", en: "Top-10" },
+                noRecords: { ru: "Пока нет рекордов", en: "No records yet" },
+                undo: { ru: "↩ ОТМЕНА", en: "↩ UNDO" },
+                scoreLabel: { ru: "Счёт: ", en: "Score: " },
+                cleared: { ru: "Очистка! +", en: "Clear! +" },
+                perfectClear: {
+                    ru: "ИДЕАЛЬНАЯ ОЧИСТКА! +",
+                    en: "PERFECT CLEAR! +",
+                },
+                replayBeat: { ru: "РЕКОРД УЛУЧШЕН!", en: "SCORE IMPROVED!" },
+                replayFail: { ru: "РЕКОРД НЕ ПОБИТ", en: "SCORE NOT BEATEN" },
+                replayTarget: { ru: "ЦЕЛЬ: ", en: "TARGET: " },
+            };
+            function t(key) {
+                return T[key]?.[lang] || T[key]?.ru || key;
+            }
+
+            function buildTitle() {
+                const titleRow = document.getElementById("title-row");
+                if (!titleRow) return;
+                titleRow.innerHTML = "";
+                const title = t("title");
+                for (let li = 0; li < title.length; li++) {
+                    const char = title[li],
+                        map = PIXEL_MAPS[char],
+                        co = TITLE_COLORS[li % TITLE_COLORS.length];
+                    if (!map) {
+                        const span = document.createElement("span");
+                        span.style.cssText = "color:#fce4a8;font-size:2rem;";
+                        span.textContent = char;
+                        titleRow.appendChild(span);
+                        continue;
+                    }
+                    const grid = document.createElement("div");
+                    grid.className = "letter-grid";
+                    for (let ri = 0; ri < 5; ri++) {
+                        for (let ci = 0; ci < 5; ci++) {
+                            const cell = document.createElement("div");
+                            cell.className = "letter-cell";
+                            if (map[ri][ci]) {
+                                cell.style.background =
+                                    "linear-gradient(180deg, " +
+                                    co.light +
+                                    " 0%, " +
+                                    co.base +
+                                    " 35%, " +
+                                    co.mid +
+                                    " 70%, " +
+                                    co.dark +
+                                    " 100%)";
+                                cell.style.boxShadow =
+                                    "inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.25)";
+                            }
+                            grid.appendChild(cell);
+                        }
+                    }
+                    titleRow.appendChild(grid);
+                }
+            }
+
+            function applyLang() {
+                document.documentElement.lang = lang;
+                document.title = t("title");
+                buildTitle();
+                document.getElementById("play-side-btn").textContent =
+                    t("play");
+                document.getElementById("lb-btn").textContent = t("top10");
+                document.querySelector("#gameover-overlay h2").textContent =
+                    t("gameOver");
+                document.getElementById("restart-btn").textContent =
+                    t("restart");
+                const labels = document.querySelectorAll(
+                    "#side .info-box .label",
+                );
+                if (labels[0]) labels[0].textContent = t("score");
+                if (labels[1]) labels[1].textContent = t("groupVal");
+                if (labels[2]) labels[2].textContent = t("cubesLeft");
+                const olbTitle = document.querySelector(
+                    ".overlay-lb .olb-title",
+                );
+                if (olbTitle) olbTitle.textContent = t("leaderboard");
+                document.getElementById("undo-btn").textContent = t("undo");
+                document.getElementById("lang-toggle").textContent =
+                    lang === "ru" ? "EN" : "RU";
+                renderOverlayLeaderboard();
+            }
+
+            function toggleLang() {
+                lang = lang === "ru" ? "en" : "ru";
+                try {
+                    localStorage.setItem(LANG_KEY, lang);
+                } catch {}
+                applyLang();
+            }
+            function loadLang() {
+                try {
+                    const s = localStorage.getItem(LANG_KEY);
+                    if (s === "en" || s === "ru") lang = s;
+                } catch {}
+            }
+
+            const boardCanvas = document.getElementById("board");
+            const bonusPopup = document.getElementById("bonus-popup");
+            const startOverlay = document.getElementById("start-overlay");
+            const gameoverOverlay = document.getElementById("gameover-overlay");
+            const finalScoreEl = document.getElementById("final-score");
+            const finalBonusEl = document.getElementById("final-bonus");
+            const scoreVal = document.getElementById("score-val");
+            const groupVal = document.getElementById("group-val");
+            const cubesLeftEl = document.getElementById("cubes-left");
+            const statsContent = document.getElementById("stats-content");
+            const playSideBtn = document.getElementById("play-side-btn");
+
+            // ============ WEBGL2 SETUP ============
+            boardCanvas.width = BW;
+            boardCanvas.height = BH;
+            let gl = null;
+            let GL = {};
+
+            function initWebGL() {
+                gl = boardCanvas.getContext("webgl2", {
+                    alpha: false,
+                    antialias: false,
+                    premultipliedAlpha: false,
+                });
+                if (!gl) {
+                    document.body.innerHTML =
+                        '<h2 style="color:#f88;text-align:center;margin-top:40vh">WebGL2 не поддерживается</h2>';
+                    return;
+                }
+
+                const BG_VS = `#version 300 es\nlayout(location=0) in vec2 a_pos; out vec2 v_uv; void main(){ gl_Position=vec4(a_pos,0,1); v_uv=a_pos*0.5+0.5; }`;
+                const BG_FS = `#version 300 es\nprecision mediump float; in vec2 v_uv; uniform sampler2D u_tex; out vec4 fc; void main(){ fc=texture(u_tex,v_uv); }`;
+                const CELL_VS = `#version 300 es\nlayout(location=0) in vec2 a_pos; layout(location=1) in vec2 a_off; layout(location=2) in float a_sz; layout(location=3) in vec4 a_uv; layout(location=4) in float a_alpha; uniform vec2 u_res; out vec2 v_uv; out float v_a; void main(){ vec2 px=a_off+a_pos*a_sz; vec2 cp=(px/u_res)*2.0-1.0; cp.y*=-1.0; gl_Position=vec4(cp,0,1); v_uv=a_uv.xy+a_pos*a_uv.zw; v_a=a_alpha; }`;
+                const CELL_FS = `#version 300 es\nprecision mediump float; in vec2 v_uv; in float v_a; uniform sampler2D u_tex; out vec4 fc; void main(){ vec4 t=texture(u_tex,v_uv); fc=vec4(t.rgb,t.a*v_a); }`;
+                const PART_VS = `#version 300 es\nlayout(location=0) in vec2 a_pos; layout(location=1) in float a_sz; layout(location=2) in vec4 a_col; uniform vec2 u_res; out vec4 v_col; void main(){ vec2 cp=(a_pos/u_res)*2.0-1.0; cp.y*=-1.0; gl_Position=vec4(cp,0,1); gl_PointSize=a_sz*2.0; v_col=a_col; }`;
+                const PART_FS = `#version 300 es\nprecision mediump float; in vec4 v_col; out vec4 fc; void main(){ vec2 c=gl_PointCoord-0.5; float d=length(c); if(d>0.5)discard; float a=v_col.a*smoothstep(0.5,0.05,d); fc=vec4(v_col.rgb,a); }`;
+
+                function compileShader(src, type) {
+                    const s = gl.createShader(type);
+                    gl.shaderSource(s, src);
+                    gl.compileShader(s);
+                    return s;
+                }
+                function createProgram(vs, fs) {
+                    const p = gl.createProgram(),
+                        vShader = compileShader(vs, gl.VERTEX_SHADER),
+                        fShader = compileShader(fs, gl.FRAGMENT_SHADER);
+                    gl.attachShader(p, vShader);
+                    gl.attachShader(p, fShader);
+                    gl.linkProgram(p);
+                    gl.detachShader(p, vShader);
+                    gl.deleteShader(vShader);
+                    gl.detachShader(p, fShader);
+                    gl.deleteShader(fShader);
+                    return p;
+                }
+
+                GL.bgProg = createProgram(BG_VS, BG_FS);
+                GL.cellProg = createProgram(CELL_VS, CELL_FS);
+                GL.partProg = createProgram(PART_VS, PART_FS);
+                GL.bgU_tex = gl.getUniformLocation(GL.bgProg, "u_tex");
+                GL.cellU_res = gl.getUniformLocation(GL.cellProg, "u_res");
+                GL.cellU_tex = gl.getUniformLocation(GL.cellProg, "u_tex");
+                GL.partU_res = gl.getUniformLocation(GL.partProg, "u_res");
+                GL.cellA_pos = gl.getAttribLocation(GL.cellProg, "a_pos");
+                GL.cellA_off = gl.getAttribLocation(GL.cellProg, "a_off");
+                GL.cellA_sz = gl.getAttribLocation(GL.cellProg, "a_sz");
+                GL.cellA_uv = gl.getAttribLocation(GL.cellProg, "a_uv");
+                GL.cellA_alpha = gl.getAttribLocation(GL.cellProg, "a_alpha");
+                GL.partA_pos = gl.getAttribLocation(GL.partProg, "a_pos");
+                GL.partA_sz = gl.getAttribLocation(GL.partProg, "a_sz");
+                GL.partA_col = gl.getAttribLocation(GL.partProg, "a_col");
+
+                function roundRect(ctx, x, y, w, h, radii) {
+                    let tl, tr, br, bl;
+                    if (Array.isArray(radii)) {
+                        [tl, tr, br, bl] = radii;
+                    } else {
+                        tl = tr = br = bl = radii;
+                    }
+                    ctx.beginPath();
+                    ctx.moveTo(x + tl, y);
+                    ctx.lineTo(x + w - tr, y);
+                    ctx.quadraticCurveTo(x + w, y, x + w, y + tr);
+                    ctx.lineTo(x + w, y + h - br);
+                    ctx.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+                    ctx.lineTo(x + bl, y + h);
+                    ctx.quadraticCurveTo(x, y + h, x, y + h - bl);
+                    ctx.lineTo(x, y + tl);
+                    ctx.quadraticCurveTo(x, y, x + tl, y);
+                    ctx.closePath();
+                }
+                function drawGlassCell(
+                    ctx,
+                    x,
+                    y,
+                    colorIdx,
+                    cellSize,
+                    highlight,
+                ) {
+                    const co = COLORS[colorIdx],
+                        px = x * cellSize,
+                        py = y * cellSize,
+                        cs = cellSize,
+                        r = 3;
+                    ctx.save();
+                    const grad = ctx.createLinearGradient(px, py, px, py + cs);
+                    grad.addColorStop(0, co.light);
+                    grad.addColorStop(0.35, co.base);
+                    grad.addColorStop(0.7, co.mid);
+                    grad.addColorStop(1, co.dark);
+                    ctx.fillStyle = grad;
+                    roundRect(ctx, px + 0.5, py + 0.5, cs - 1, cs - 1, r);
+                    ctx.fill();
+                    ctx.strokeStyle = "rgba(255,255,255,0.25)";
+                    ctx.lineWidth = 1;
+                    roundRect(ctx, px + 1.5, py + 1.5, cs - 3, cs - 3, r - 0.5);
+                    ctx.stroke();
+                    const shineH = cs * SHINE_HEIGHT;
+                    ctx.globalAlpha = SHINE_OPACITY;
+                    const shG = ctx.createLinearGradient(
+                        px,
+                        py,
+                        px,
+                        py + shineH,
+                    );
+                    shG.addColorStop(0, "rgba(255,255,255,0.7)");
+                    shG.addColorStop(1, "rgba(255,255,255,0)");
+                    ctx.fillStyle = shG;
+                    roundRect(ctx, px + 2, py + 2, cs - 4, shineH, [
+                        r - 1,
+                        r - 1,
+                        0,
+                        0,
+                    ]);
+                    ctx.fill();
+                    ctx.globalAlpha = 0.6;
+                    ctx.fillStyle = "#fff";
+                    ctx.beginPath();
+                    ctx.ellipse(
+                        px + cs * SPECULAR_X,
+                        py + cs * SPECULAR_Y,
+                        cs * SPECULAR_RX,
+                        cs * SPECULAR_RY,
+                        -0.3,
+                        0,
+                        Math.PI * 2,
+                    );
+                    ctx.fill();
+                    ctx.globalAlpha = 0.15;
+                    const sG = ctx.createLinearGradient(
+                        px,
+                        py + cs * SHADOW_START,
+                        px,
+                        py + cs,
+                    );
+                    sG.addColorStop(0, "rgba(0,0,0,0)");
+                    sG.addColorStop(1, "rgba(0,0,0,0.5)");
+                    ctx.fillStyle = sG;
+                    roundRect(
+                        ctx,
+                        px + 2,
+                        py + cs * SHADOW_START,
+                        cs - 4,
+                        cs * 0.33,
+                        [0, 0, r - 1, r - 1],
+                    );
+                    ctx.fill();
+                    ctx.globalAlpha = GLOW_OPACITY;
+                    ctx.shadowColor = co.base;
+                    ctx.shadowBlur = 8;
+                    ctx.fillStyle = co.base;
+                    roundRect(ctx, px, py, cs, cs, r);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    if (highlight) {
+                        ctx.globalAlpha = 0.25;
+                        ctx.fillStyle = "#fff";
+                        roundRect(ctx, px + 0.5, py + 0.5, cs - 1, cs - 1, r);
+                        ctx.fill();
+                        ctx.globalAlpha = 0.6;
+                        ctx.strokeStyle = "#fff";
+                        ctx.lineWidth = 1.5;
+                        roundRect(ctx, px + 1, py + 1, cs - 2, cs - 2, r);
+                        ctx.stroke();
+                    }
+                    ctx.globalAlpha = 1;
+                    ctx.restore();
+                }
+
+                const atlasCanvas = document.createElement("canvas");
+                atlasCanvas.width = NUM_COLORS * CELL;
+                atlasCanvas.height = 2 * CELL;
+                const atlasCtx = atlasCanvas.getContext("2d");
+                for (let i = 0; i < NUM_COLORS; i++) {
+                    drawGlassCell(atlasCtx, i, 0, i, CELL, false);
+                    drawGlassCell(atlasCtx, i, 1, i, CELL, true);
+                }
+                GL.cellUVTable = [];
+                for (let i = 0; i < NUM_COLORS; i++) {
+                    GL.cellUVTable[i] = {
+                        0: [
+                            (i * CELL) / atlasCanvas.width,
+                            0,
+                            CELL / atlasCanvas.width,
+                            CELL / atlasCanvas.height,
+                        ],
+                        1: [
+                            (i * CELL) / atlasCanvas.width,
+                            CELL / atlasCanvas.height,
+                            CELL / atlasCanvas.width,
+                            CELL / atlasCanvas.height,
+                        ],
+                    };
+                }
+
+                const bgCanvas = document.createElement("canvas");
+                bgCanvas.width = BW;
+                bgCanvas.height = BH;
+                const bgCtx = bgCanvas.getContext("2d");
+                const bgG = bgCtx.createLinearGradient(0, 0, 0, BH);
+                bgG.addColorStop(0, "#0e0e18");
+                bgG.addColorStop(1, "#0a0a10");
+                bgCtx.fillStyle = bgG;
+                bgCtx.fillRect(0, 0, BW, BH);
+                bgCtx.strokeStyle = "rgba(255,255,255,0.03)";
+                bgCtx.lineWidth = 0.5;
+                for (let x = 0; x <= COLS; x++) {
+                    bgCtx.beginPath();
+                    bgCtx.moveTo(x * CELL, 0);
+                    bgCtx.lineTo(x * CELL, BH);
+                    bgCtx.stroke();
+                }
+                for (let y = 0; y <= ROWS; y++) {
+                    bgCtx.beginPath();
+                    bgCtx.moveTo(0, y * CELL);
+                    bgCtx.lineTo(BW, y * CELL);
+                    bgCtx.stroke();
+                }
+                bgCtx.strokeStyle = "rgba(255,255,255,0.1)";
+                bgCtx.lineWidth = 2;
+                bgCtx.strokeRect(0, 0, BW, BH);
+
+                function createTex(canvas) {
+                    const t = gl.createTexture();
+                    gl.bindTexture(gl.TEXTURE_2D, t);
+                    gl.texImage2D(
+                        gl.TEXTURE_2D,
+                        0,
+                        gl.RGBA,
+                        gl.RGBA,
+                        gl.UNSIGNED_BYTE,
+                        canvas,
+                    );
+                    gl.texParameteri(
+                        gl.TEXTURE_2D,
+                        gl.TEXTURE_MIN_FILTER,
+                        gl.LINEAR,
+                    );
+                    gl.texParameteri(
+                        gl.TEXTURE_2D,
+                        gl.TEXTURE_WRAP_S,
+                        gl.CLAMP_TO_EDGE,
+                    );
+                    gl.texParameteri(
+                        gl.TEXTURE_2D,
+                        gl.TEXTURE_WRAP_T,
+                        gl.CLAMP_TO_EDGE,
+                    );
+                    return t;
+                }
+                GL.bgTex = createTex(bgCanvas);
+                GL.atlasTex = createTex(atlasCanvas);
+
+                GL.bgVao = gl.createVertexArray();
+                GL.bgBuf = gl.createBuffer();
+                gl.bindVertexArray(GL.bgVao);
+                gl.bindBuffer(gl.ARRAY_BUFFER, GL.bgBuf);
+                gl.bufferData(
+                    gl.ARRAY_BUFFER,
+                    new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+                    gl.STATIC_DRAW,
+                );
+                gl.enableVertexAttribArray(0);
+                gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+                gl.bindVertexArray(null);
+
+                GL.cellQuadBuf = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, GL.cellQuadBuf);
+                gl.bufferData(
+                    gl.ARRAY_BUFFER,
+                    new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]),
+                    gl.STATIC_DRAW,
+                );
+                GL.cellInstBuf = gl.createBuffer();
+                GL.cellInstArr = new Float32Array((COLS * ROWS + 50) * 8);
+                gl.bindBuffer(gl.ARRAY_BUFFER, GL.cellInstBuf);
+                gl.bufferData(
+                    gl.ARRAY_BUFFER,
+                    GL.cellInstArr.byteLength,
+                    gl.DYNAMIC_DRAW,
+                );
+                GL.cellVao = gl.createVertexArray();
+                gl.bindVertexArray(GL.cellVao);
+                gl.bindBuffer(gl.ARRAY_BUFFER, GL.cellQuadBuf);
+                gl.enableVertexAttribArray(GL.cellA_pos);
+                gl.vertexAttribPointer(GL.cellA_pos, 2, gl.FLOAT, false, 0, 0);
+                gl.bindBuffer(gl.ARRAY_BUFFER, GL.cellInstBuf);
+                gl.enableVertexAttribArray(GL.cellA_off);
+                gl.vertexAttribPointer(GL.cellA_off, 2, gl.FLOAT, false, 32, 0);
+                gl.vertexAttribDivisor(GL.cellA_off, 1);
+                gl.enableVertexAttribArray(GL.cellA_sz);
+                gl.vertexAttribPointer(GL.cellA_sz, 1, gl.FLOAT, false, 32, 8);
+                gl.vertexAttribDivisor(GL.cellA_sz, 1);
+                gl.enableVertexAttribArray(GL.cellA_uv);
+                gl.vertexAttribPointer(GL.cellA_uv, 4, gl.FLOAT, false, 32, 12);
+                gl.vertexAttribDivisor(GL.cellA_uv, 1);
+                gl.enableVertexAttribArray(GL.cellA_alpha);
+                gl.vertexAttribPointer(
+                    GL.cellA_alpha,
+                    1,
+                    gl.FLOAT,
+                    false,
+                    32,
+                    28,
+                );
+                gl.vertexAttribDivisor(GL.cellA_alpha, 1);
+                gl.bindVertexArray(null);
+
+                GL.partBuf = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, GL.partBuf);
+                gl.bufferData(
+                    gl.ARRAY_BUFFER,
+                    MAX_PARTICLES * 7 * 4,
+                    gl.DYNAMIC_DRAW,
+                );
+                GL.partVao = gl.createVertexArray();
+                gl.bindVertexArray(GL.partVao);
+                gl.bindBuffer(gl.ARRAY_BUFFER, GL.partBuf);
+                gl.enableVertexAttribArray(GL.partA_pos);
+                gl.vertexAttribPointer(GL.partA_pos, 2, gl.FLOAT, false, 28, 0);
+                gl.enableVertexAttribArray(GL.partA_sz);
+                gl.vertexAttribPointer(GL.partA_sz, 1, gl.FLOAT, false, 28, 8);
+                gl.enableVertexAttribArray(GL.partA_col);
+                gl.vertexAttribPointer(
+                    GL.partA_col,
+                    4,
+                    gl.FLOAT,
+                    false,
+                    28,
+                    12,
+                );
+                gl.bindVertexArray(null);
+            }
+
+            // ============ GAME STATE ============
+            let board = new Int8Array(ROWS * COLS);
+            board.fill(-1);
+            let score = 0,
+                started = false,
+                gameOver = false,
+                hoverGroup = [],
+                hoverScore = 0,
+                undoStack = [],
+                initialBoardStr = "",
+                replaySourceIndex = -1;
+            let animPhase = "idle",
+                removingCells = [],
+                removingStart = 0,
+                fallAnims = [],
+                fallStartTime = 0,
+                compactAnims = [],
+                compactStartTime = 0;
+            let fallAnimMap = new Map(),
+                compactAnimMap = new Map();
+
+            function createBoard() {
+                let attempts = 0;
+                do {
+                    board.fill(-1);
+                    for (let i = 0; i < ROWS * COLS; i++)
+                        board[i] = Math.floor(Math.random() * NUM_COLORS);
+                    attempts++;
+                } while (!hasValidMoves(board) && attempts < 100);
+                if (attempts >= 100) {
+                    board[0] = 0;
+                    board[1] = 0;
+                }
+            }
+
+            function cloneBoard(b) {
+                return new Int8Array(b);
+            }
+            function boardToString(b) {
+                return Array.from(b)
+                    .map((v) => (v < 0 ? "x" : v))
+                    .join("");
+            }
+            function stringToBoard(s) {
+                if (s.length !== ROWS * COLS) {
+                    createBoard();
+                    return;
+                }
+                for (let i = 0; i < ROWS * COLS; i++)
+                    board[i] = s[i] === "x" ? -1 : parseInt(s[i]);
+            }
+
+            function countCubes(b) {
+                let count = 0;
+                const colorCounts = new Array(NUM_COLORS).fill(0);
+                for (let i = 0; i < ROWS * COLS; i++) {
+                    if (b[i] >= 0) {
+                        count++;
+                        colorCounts[b[i]]++;
+                    }
+                }
+                return { total: count, colorCounts };
+            }
+
+            function findGroup(b, r, c) {
+                if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return [];
+                const idx = r * COLS + c;
+                if (b[idx] < 0) return [];
+                const color = b[idx],
+                    visited = new Set(),
+                    group = [],
+                    stack = [idx];
+                while (stack.length > 0) {
+                    const curr = stack.pop();
+                    if (visited.has(curr) || b[curr] !== color) continue;
+                    visited.add(curr);
+                    const cr = Math.floor(curr / COLS),
+                        cc = curr % COLS;
+                    group.push({ r: cr, c: cc });
+                    if (cr > 0) stack.push(curr - COLS);
+                    if (cr < ROWS - 1) stack.push(curr + COLS);
+                    if (cc > 0) stack.push(curr - 1);
+                    if (cc < COLS - 1) stack.push(curr + 1);
+                }
+                return group;
+            }
+
+            function calcScore(groupSize) {
+                return groupSize * (groupSize - 1);
+            }
+
+            function applyGravity(b) {
+                for (let c = 0; c < COLS; c++) {
+                    let writeRow = ROWS - 1;
+                    for (let r = ROWS - 1; r >= 0; r--) {
+                        const idx = r * COLS + c;
+                        if (b[idx] >= 0) {
+                            if (writeRow !== r) {
+                                b[writeRow * COLS + c] = b[idx];
+                                b[idx] = -1;
+                            }
+                            writeRow--;
+                        }
+                    }
+                }
+            }
+
+            function computeFallAnims(oldBoard, newBoard) {
+                const anims = [];
+                for (let c = 0; c < COLS; c++) {
+                    const oldCubes = [],
+                        newCubes = [];
+                    for (let r = ROWS - 1; r >= 0; r--)
+                        if (oldBoard[r * COLS + c] >= 0)
+                            oldCubes.push({
+                                color: oldBoard[r * COLS + c],
+                                row: r,
+                            });
+                    for (let r = ROWS - 1; r >= 0; r--)
+                        if (newBoard[r * COLS + c] >= 0)
+                            newCubes.push({
+                                color: newBoard[r * COLS + c],
+                                row: r,
+                            });
+                    const minLen = Math.min(oldCubes.length, newCubes.length);
+                    for (let i = 0; i < minLen; i++) {
+                        if (newCubes[i].row !== oldCubes[i].row)
+                            anims.push({
+                                col: c,
+                                fromRow: oldCubes[i].row,
+                                toRow: newCubes[i].row,
+                                color: newCubes[i].color,
+                            });
+                    }
+                }
+                return anims;
+            }
+
+            function compactColumnsWithAnims(b) {
+                const anims = [];
+                let writeCol = 0;
+                for (let c = 0; c < COLS; c++) {
+                    let hasCubes = false;
+                    for (let r = 0; r < ROWS; r++) {
+                        if (b[r * COLS + c] >= 0) {
+                            hasCubes = true;
+                            break;
+                        }
+                    }
+                    if (hasCubes) {
+                        if (writeCol !== c) {
+                            for (let r = 0; r < ROWS; r++) {
+                                const idx = r * COLS + c;
+                                if (b[idx] >= 0)
+                                    anims.push({
+                                        row: r,
+                                        fromCol: c,
+                                        toCol: writeCol,
+                                        color: b[idx],
+                                    });
+                                b[r * COLS + writeCol] = b[idx];
+                                b[idx] = -1;
+                            }
+                        }
+                        writeCol++;
+                    }
+                }
+                return anims;
+            }
+
+            function hasValidMoves(b) {
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        const idx = r * COLS + c;
+                        if (b[idx] < 0) continue;
+                        const color = b[idx];
+                        if (c + 1 < COLS && b[idx + 1] === color) return true;
+                        if (r + 1 < ROWS && b[idx + COLS] === color)
+                            return true;
+                    }
+                }
+                return false;
+            }
+
+            function pushUndo() {
+                undoStack.push({ board: cloneBoard(board), score });
+                if (undoStack.length > UNDO_MAX) undoStack.shift();
+            }
+
+            let gameOverScoreSaved = false;
+            function doUndo() {
+                if (undoStack.length === 0 || animPhase !== "idle") return;
+                sfxUndo();
+                const state = undoStack.pop();
+                board = state.board;
+                score = state.score;
+                hoverGroup = [];
+                _hoverSetKey = "";
+                _removingSet = new Set();
+                _removingSetKey = "";
+                hoverScore = 0;
+                gameOver = false;
+                gameOverScoreSaved = false;
+                gameoverOverlay.classList.add("hidden");
+                updateUI();
+                render();
+                ensureAnimLoop();
+            }
+
+            // ============ DOD PARTICLE SYSTEM ============
+            let particleCount = 0;
+            const MAX_PARTICLES = 800;
+            const partArr = new Float32Array(MAX_PARTICLES * 7); // x, y, size, r, g, b, life
+            const partVel = new Float32Array(MAX_PARTICLES * 2); // vx, vy
+            const partDecay = new Float32Array(MAX_PARTICLES);
+
+            function createRemoveParticles(removing) {
+                for (const { r, c, color } of removing) {
+                    if (particleCount >= MAX_PARTICLES) break;
+                    const co = COLORS[color],
+                        cx = c * CELL + CELL / 2,
+                        cy = r * CELL + CELL / 2;
+                    for (
+                        let i = 0;
+                        i < 3 && particleCount < MAX_PARTICLES;
+                        i++
+                    ) {
+                        const angle = Math.random() * Math.PI * 2,
+                            speed = 2 + Math.random() * 5,
+                            isWhite = Math.random() > 0.4;
+                        const idx = particleCount;
+                        partArr[idx * 7 + 0] =
+                            cx + (Math.random() - 0.5) * CELL * 0.3;
+                        partArr[idx * 7 + 1] =
+                            cy + (Math.random() - 0.5) * CELL * 0.3;
+                        partArr[idx * 7 + 2] = 1.5 + Math.random() * 2;
+                        partArr[idx * 7 + 3] =
+                            (isWhite ? 255 : co.glow[0]) / 255;
+                        partArr[idx * 7 + 4] =
+                            (isWhite ? 255 : co.glow[1]) / 255;
+                        partArr[idx * 7 + 5] =
+                            (isWhite ? 255 : co.glow[2]) / 255;
+                        partArr[idx * 7 + 6] = 1;
+                        partVel[idx * 2 + 0] = Math.cos(angle) * speed;
+                        partVel[idx * 2 + 1] = Math.sin(angle) * speed - 2;
+                        partDecay[idx] = 0.04 + Math.random() * 0.03;
+                        particleCount++;
+                    }
+                }
+                for (
+                    let i = 0;
+                    i < Math.min(removing.length * 2, 40) &&
+                    particleCount < MAX_PARTICLES;
+                    i++
+                ) {
+                    const cell =
+                            removing[
+                                Math.floor(Math.random() * removing.length)
+                            ],
+                        idx = particleCount;
+                    partArr[idx * 7 + 0] = cell.c * CELL + Math.random() * CELL;
+                    partArr[idx * 7 + 1] = cell.r * CELL + CELL / 2;
+                    partArr[idx * 7 + 2] = 1 + Math.random() * 1.5;
+                    partArr[idx * 7 + 3] = 1;
+                    partArr[idx * 7 + 4] = 1;
+                    partArr[idx * 7 + 5] = 1;
+                    partArr[idx * 7 + 6] = 1;
+                    partVel[idx * 2 + 0] = (Math.random() - 0.5) * 6;
+                    partVel[idx * 2 + 1] = -3 - Math.random() * 5;
+                    partDecay[idx] = 0.05 + Math.random() * 0.03;
+                    particleCount++;
+                }
+            }
+
+            function createPerfectClearParticles() {
+                for (let i = 0; i < 60 && particleCount < MAX_PARTICLES; i++) {
+                    const angle = Math.random() * Math.PI * 2,
+                        speed = 3 + Math.random() * 7,
+                        hue = Math.random() * 360,
+                        rgb = hslToRgb(hue / 360, 0.7, 0.8),
+                        idx = particleCount;
+                    partArr[idx * 7 + 0] = BW / 2;
+                    partArr[idx * 7 + 1] = BH / 2;
+                    partArr[idx * 7 + 2] = 2 + Math.random() * 3;
+                    partArr[idx * 7 + 3] = rgb[0] / 255;
+                    partArr[idx * 7 + 4] = rgb[1] / 255;
+                    partArr[idx * 7 + 5] = rgb[2] / 255;
+                    partArr[idx * 7 + 6] = 1;
+                    partVel[idx * 2 + 0] = Math.cos(angle) * speed;
+                    partVel[idx * 2 + 1] = Math.sin(angle) * speed;
+                    partDecay[idx] = 0.03 + Math.random() * 0.02;
+                    particleCount++;
+                }
+            }
+
+            function hslToRgb(h, s, l) {
+                let r, g, b;
+                if (s === 0) {
+                    r = g = b = l;
+                } else {
+                    const hue2rgb = (p, q, t) => {
+                        if (t < 0) t += 1;
+                        if (t > 1) t -= 1;
+                        if (t < 1 / 6) return p + (q - p) * 6 * t;
+                        if (t < 1 / 2) return q;
+                        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                        return p;
+                    };
+                    const q = l < 0.5 ? l * (1 + s) : l + s - l * s,
+                        p = 2 * l - q;
+                    r = hue2rgb(p, q, h + 1 / 3);
+                    g = hue2rgb(p, q, h);
+                    b = hue2rgb(p, q, h - 1 / 3);
+                }
+                return [
+                    Math.round(r * 255),
+                    Math.round(g * 255),
+                    Math.round(b * 255),
+                ];
+            }
+
+            function updateParticles() {
+                for (let i = 0; i < particleCount; i++) {
+                    partArr[i * 7 + 0] += partVel[i * 2 + 0];
+                    partArr[i * 7 + 1] += partVel[i * 2 + 1];
+                    partVel[i * 2 + 1] += 0.08;
+                    partVel[i * 2 + 0] *= 0.99;
+                    partArr[i * 7 + 6] -= partDecay[i];
+                    if (partArr[i * 7 + 6] <= 0) {
+                        particleCount--;
+                        if (i < particleCount) {
+                            for (let j = 0; j < 7; j++)
+                                partArr[i * 7 + j] =
+                                    partArr[particleCount * 7 + j];
+                            partVel[i * 2 + 0] = partVel[particleCount * 2 + 0];
+                            partVel[i * 2 + 1] = partVel[particleCount * 2 + 1];
+                            partDecay[i] = partDecay[particleCount];
+                            i--;
+                        }
+                    }
+                }
+                return particleCount > 0;
+            }
+
+            // ============ RENDERING ============
+            let _hoverSet = new Set(),
+                _removingSet = new Set(),
+                _hoverSetKey = "",
+                _removingSetKey = "";
+
+            function rebuildHoverSet() {
+                if (animPhase !== "idle") {
+                    if (_hoverSet.size > 0) {
+                        _hoverSet = new Set();
+                        _hoverSetKey = "";
+                    }
+                    return;
+                }
+                const key = hoverGroup
+                    .map(({ r, c }) => r * COLS + c)
+                    .sort((a, b) => a - b)
+                    .join(",");
+                if (key !== _hoverSetKey) {
+                    _hoverSetKey = key;
+                    _hoverSet = new Set(
+                        hoverGroup.map(({ r, c }) => r * COLS + c),
+                    );
+                }
+            }
+
+            function rebuildRemovingSet() {
+                if (removingCells.length === 0) {
+                    if (_removingSet.size > 0) {
+                        _removingSet = new Set();
+                        _removingSetKey = "";
+                    }
+                    return;
+                }
+                const key = removingCells
+                    .map(({ r, c }) => r * COLS + c)
+                    .sort((a, b) => a - b)
+                    .join(",");
+                if (key !== _removingSetKey) {
+                    _removingSetKey = key;
+                    _removingSet = new Set(
+                        removingCells.map(({ r, c }) => r * COLS + c),
+                    );
+                }
+            }
+
+            function render() {
+                if (!gl) return;
+                gl.viewport(0, 0, BW, BH);
+                gl.clearColor(0.05, 0.05, 0.08, 1);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.enable(gl.BLEND);
+                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+                gl.useProgram(GL.bgProg);
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, GL.bgTex);
+                gl.uniform1i(GL.bgU_tex, 0);
+                gl.bindVertexArray(GL.bgVao);
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+                gl.bindVertexArray(null);
+
+                rebuildHoverSet();
+                rebuildRemovingSet();
+                const now = Date.now();
+                let instCount = 0;
+
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        const v = board[r * COLS + c];
+                        if (v < 0) continue;
+                        const key = r * COLS + c;
+                        if (_removingSet.has(key)) continue;
+
+                        let alpha = 1.0,
+                            offX = c * CELL,
+                            offY = r * CELL,
+                            sz = CELL,
+                            highlighted = _hoverSet.has(key);
+
+                        if (animPhase === "falling") {
+                            const fa = fallAnimMap.get(c + "," + r);
+                            if (fa) {
+                                const t = Math.min(
+                                    (now - fallStartTime) /
+                                        1000 /
+                                        ((Math.abs(fa.toRow - fa.fromRow) *
+                                            CELL) /
+                                            FALL_SPEED),
+                                    1,
+                                );
+                                offY =
+                                    fa.fromRow * CELL +
+                                    (fa.toRow * CELL - fa.fromRow * CELL) *
+                                        easeOutQuad(t);
+                            }
+                        }
+                        if (animPhase === "compacting") {
+                            const ca = compactAnimMap.get(c + "," + r);
+                            if (ca) {
+                                const t = Math.min(
+                                    (now - compactStartTime) / COMPACT_DURATION,
+                                    1,
+                                );
+                                offX =
+                                    ca.fromCol * CELL +
+                                    (ca.toCol * CELL - ca.fromCol * CELL) *
+                                        easeOutQuad(t);
+                            }
+                        }
+
+                        const uv = GL.cellUVTable[v][highlighted ? 1 : 0];
+                        const idx = instCount * 8;
+                        GL.cellInstArr[idx] = offX;
+                        GL.cellInstArr[idx + 1] = offY;
+                        GL.cellInstArr[idx + 2] = sz;
+                        GL.cellInstArr[idx + 3] = uv[0];
+                        GL.cellInstArr[idx + 4] = uv[1];
+                        GL.cellInstArr[idx + 5] = uv[2];
+                        GL.cellInstArr[idx + 6] = uv[3];
+                        GL.cellInstArr[idx + 7] = alpha;
+                        instCount++;
+                    }
+                }
+
+                if (removingCells.length > 0 && animPhase === "removing") {
+                    const t = Math.min(
+                        (now - removingStart) / REMOVE_DURATION,
+                        1,
+                    );
+                    for (const { r, c, color } of removingCells) {
+                        const alpha = 1 - t,
+                            scale = 1 - t * 0.5,
+                            sz = CELL * scale,
+                            offX = c * CELL + (CELL - sz) / 2,
+                            offY = r * CELL + (CELL - sz) / 2;
+                        const uv = GL.cellUVTable[color][1];
+                        const idx = instCount * 8;
+                        GL.cellInstArr[idx] = offX;
+                        GL.cellInstArr[idx + 1] = offY;
+                        GL.cellInstArr[idx + 2] = sz;
+                        GL.cellInstArr[idx + 3] = uv[0];
+                        GL.cellInstArr[idx + 4] = uv[1];
+                        GL.cellInstArr[idx + 5] = uv[2];
+                        GL.cellInstArr[idx + 6] = uv[3];
+                        GL.cellInstArr[idx + 7] = alpha;
+                        instCount++;
+                    }
+                }
+
+                if (instCount > 0) {
+                    gl.useProgram(GL.cellProg);
+                    gl.uniform2f(GL.cellU_res, BW, BH);
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.bindTexture(gl.TEXTURE_2D, GL.atlasTex);
+                    gl.uniform1i(GL.cellU_tex, 0);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, GL.cellInstBuf);
+                    gl.bufferSubData(
+                        gl.ARRAY_BUFFER,
+                        0,
+                        GL.cellInstArr.subarray(0, instCount * 8),
+                    );
+                    gl.bindVertexArray(GL.cellVao);
+                    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, instCount);
+                    gl.bindVertexArray(null);
+                }
+
+                if (particleCount > 0) {
+                    gl.useProgram(GL.partProg);
+                    gl.uniform2f(GL.partU_res, BW, BH);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, GL.partBuf);
+                    gl.bufferSubData(
+                        gl.ARRAY_BUFFER,
+                        0,
+                        partArr.subarray(0, particleCount * 7),
+                    );
+                    gl.bindVertexArray(GL.partVao);
+                    gl.drawArrays(gl.POINTS, 0, particleCount);
+                    gl.bindVertexArray(null);
+                }
+            }
+
+            // ============ ANIMATION LOOP ============
+            let animFrame = null;
+            function animLoop() {
+                let needRender = false;
+                if (animPhase === "removing") {
+                    if (Date.now() - removingStart >= REMOVE_DURATION) {
+                        for (const { r, c } of removingCells)
+                            board[r * COLS + c] = -1;
+                        const oldBoard = cloneBoard(board);
+                        applyGravity(board);
+                        fallAnims = computeFallAnims(oldBoard, board);
+                        fallAnimMap.clear();
+                        for (const fa of fallAnims)
+                            fallAnimMap.set(fa.col + "," + fa.toRow, fa);
+                        removingCells = [];
+                        _removingSetKey = "";
+                        fallStartTime = Date.now();
+                        if (fallAnims.length > 0) animPhase = "falling";
+                        else startCompactPhase();
+                    }
+                    needRender = true;
+                }
+                if (animPhase === "falling") {
+                    let allDone = true;
+                    for (const fa of fallAnims) {
+                        if (
+                            (Date.now() - fallStartTime) / 1000 <
+                            (Math.abs(fa.toRow - fa.fromRow) * CELL) /
+                                FALL_SPEED
+                        ) {
+                            allDone = false;
+                            break;
+                        }
+                    }
+                    if (allDone) {
+                        sfxLand();
+                        fallAnims = [];
+                        fallAnimMap.clear();
+                        startCompactPhase();
+                    }
+                    needRender = true;
+                }
+                if (animPhase === "compacting") {
+                    if (Date.now() - compactStartTime >= COMPACT_DURATION) {
+                        compactAnims = [];
+                        compactAnimMap.clear();
+                        animPhase = "idle";
+                        checkGameOver();
+                    }
+                    needRender = true;
+                }
+                if (particleCount > 0) {
+                    updateParticles();
+                    needRender = true;
+                }
+                if (needRender) render();
+                if (needRender || animPhase !== "idle" || particleCount > 0)
+                    animFrame = requestAnimationFrame(animLoop);
+                else animFrame = null;
+            }
+            function ensureAnimLoop() {
+                if (!animFrame) animFrame = requestAnimationFrame(animLoop);
+            }
+
+            function startCompactPhase() {
+                compactAnims = compactColumnsWithAnims(board);
+                compactAnimMap.clear();
+                for (const ca of compactAnims)
+                    compactAnimMap.set(ca.toCol + "," + ca.row, ca);
+                if (compactAnims.length > 0) {
+                    sfxCompact();
+                    compactStartTime = Date.now();
+                    animPhase = "compacting";
+                } else {
+                    animPhase = "idle";
+                    checkGameOver();
+                }
+            }
+
+            function checkGameOver() {
+                const info = countCubes(board);
+                if (info.total === 0) {
+                    score += PERFECT_CLEAR_BONUS;
+                    showBonus(
+                        t("perfectClear") +
+                            PERFECT_CLEAR_BONUS.toLocaleString(getLocale()),
+                    );
+                    createPerfectClearParticles();
+                    sfxPerfectClear();
+                    gameOver = true;
+                    showGameOver(info);
+                } else if (!hasValidMoves(board)) {
+                    sfxGameOver();
+                    gameOver = true;
+                    showGameOver(info);
+                }
+                updateUI(info);
+            }
+
+            // ============ UI UPDATES ============
+            function updateUI(info) {
+                scoreVal.textContent = score.toLocaleString(getLocale());
+                if (!info) info = countCubes(board);
+                cubesLeftEl.textContent =
+                    info.total -
+                    (animPhase === "removing" ? removingCells.length : 0);
+                groupVal.textContent = hoverScore > 0 ? "+" + hoverScore : "0";
+                let html = '<div class="stats-row">';
+                for (let i = 0; i < NUM_COLORS; i++)
+                    html += `<div class="stats-cell"><div class="swatch" style="background:${COLORS[i].base}"></div><span class="count">${info.colorCounts[i]}</span></div>`;
+                statsContent.innerHTML = html + "</div>";
+            }
+
+            let bonusTimers = [];
+            function showBonus(text) {
+                bonusTimers.forEach((id) => clearTimeout(id));
+                bonusTimers = [];
+                bonusPopup.textContent = text;
+                bonusPopup.className = "show";
+                bonusTimers.push(
+                    setTimeout(() => {
+                        bonusPopup.className = "fade";
+                    }, 1200),
+                );
+                bonusTimers.push(
+                    setTimeout(() => {
+                        bonusPopup.className = "";
+                        bonusTimers = [];
+                    }, 1800),
+                );
+            }
+
+            function showGameOver(info) {
+                gameoverOverlay.classList.remove("hidden");
+                if (!info) info = countCubes(board);
+                finalScoreEl.textContent =
+                    t("scoreLabel") + score.toLocaleString(getLocale());
+                finalBonusEl.style.color = "#fce4a8";
+                if (info.total === 0) {
+                    finalBonusEl.style.display = "";
+                    finalBonusEl.textContent =
+                        t("perfectClear") +
+                        PERFECT_CLEAR_BONUS.toLocaleString(getLocale());
+                } else if (replaySourceIndex >= 0) {
+                    const replayEntry = loadLeaderboard().find(
+                        (e) => e.board === initialBoardStr,
+                    );
+                    if (replayEntry) {
+                        if (score > replayEntry.score) {
+                            finalBonusEl.style.display = "";
+                            finalBonusEl.textContent =
+                                t("replayBeat") +
+                                " (" +
+                                t("replayTarget") +
+                                replayEntry.score.toLocaleString(getLocale()) +
+                                ")";
+                        } else {
+                            finalBonusEl.style.display = "";
+                            finalBonusEl.style.color = "#f0a8b8";
+                            finalBonusEl.textContent =
+                                t("replayFail") +
+                                " (" +
+                                t("replayTarget") +
+                                replayEntry.score.toLocaleString(getLocale()) +
+                                ")";
+                        }
+                    }
+                } else {
+                    finalBonusEl.style.display = "none";
+                }
+                if (!gameOverScoreSaved) {
+                    saveScore(score);
+                    gameOverScoreSaved = true;
+                }
+            }
+
+            function loadLeaderboard() {
+                try {
+                    const data = localStorage.getItem(LB_KEY);
+                    if (data) return JSON.parse(data);
+                } catch {}
+                return [];
+            }
+            function saveScore(sc) {
+                if (sc <= 0) return;
+                const lb = loadLeaderboard(),
+                    dateStr = new Date().toLocaleDateString(getLocale(), {
+                        day: "2-digit",
+                        month: "2-digit",
+                    });
+                if (replaySourceIndex >= 0) {
+                    const replayIdx = lb.findIndex(
+                        (e) => e.board === initialBoardStr,
+                    );
+                    if (replayIdx >= 0 && sc > lb[replayIdx].score) {
+                        lb[replayIdx].score = sc;
+                        lb[replayIdx].date = dateStr;
+                    }
+                } else {
+                    lb.push({
+                        score: sc,
+                        date: dateStr,
+                        board: initialBoardStr,
+                    });
+                }
+                lb.sort((a, b) => b.score - a.score);
+                if (lb.length > LB_MAX) lb.length = LB_MAX;
+                try {
+                    localStorage.setItem(LB_KEY, JSON.stringify(lb));
+                } catch {}
+                renderOverlayLeaderboard();
+            }
+
+            function renderOverlayLeaderboard() {
+                const el = document.getElementById("overlay-lb-content");
+                if (!el) return;
+                const lb = loadLeaderboard();
+                if (lb.length === 0) {
+                    el.innerHTML = `<div class="olb-empty">${t("noRecords")}</div>`;
+                    return;
+                }
+                let html = "";
+                for (let i = 0; i < Math.min(lb.length, LB_MAX); i++) {
+                    const e = lb[i],
+                        rankColor =
+                            i === 0
+                                ? "#fce4a8"
+                                : i === 1
+                                  ? "#d0d0d0"
+                                  : i === 2
+                                    ? "#d4a574"
+                                    : "#888",
+                        hasBoard = !!e.board,
+                        cls = hasBoard ? "clickable" : "";
+                    html += `<div class="olb-row ${cls}" data-replay="${hasBoard ? i : ""}"><span class="olb-rank" style="color:${rankColor}">${i + 1}</span><span class="olb-score">${e.score.toLocaleString(getLocale())}</span><span class="olb-date">${e.date || ""}</span>${hasBoard ? '<span class="olb-replay">↻</span>' : ""}</div>`;
+                }
+                el.innerHTML = html;
+                el.querySelectorAll(".olb-row.clickable").forEach((row) => {
+                    row.addEventListener("click", () => {
+                        const idx = parseInt(row.getAttribute("data-replay"));
+                        if (!isNaN(idx)) startReplay(idx);
+                    });
+                });
+            }
+
+            // ============ INPUT ============
+            function getCellFromPos(clientX, clientY) {
+                const rect = boardCanvas.getBoundingClientRect(),
+                    x = (clientX - rect.left) * (BW / rect.width),
+                    y = (clientY - rect.top) * (BH / rect.height);
+                const c = Math.floor(x / CELL),
+                    r = Math.floor(y / CELL);
+                if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return null;
+                return { r, c };
+            }
+            function handleHover(clientX, clientY) {
+                if (!started || gameOver || animPhase !== "idle") {
+                    if (hoverGroup.length > 0) {
+                        hoverGroup = [];
+                        hoverScore = 0;
+                        _hoverSetKey = "";
+                        groupVal.textContent = "0";
+                        render();
+                    }
+                    return;
+                }
+                const cell = getCellFromPos(clientX, clientY);
+                if (!cell) {
+                    if (hoverGroup.length > 0) {
+                        hoverGroup = [];
+                        hoverScore = 0;
+                        groupVal.textContent = "0";
+                        render();
+                    }
+                    return;
+                }
+                const group = findGroup(board, cell.r, cell.c);
+                if (group.length < 2) {
+                    if (hoverGroup.length > 0) {
+                        hoverGroup = [];
+                        hoverScore = 0;
+                        groupVal.textContent = "0";
+                        render();
+                    }
+                    return;
+                }
+                const newKey = group
+                        .map(({ r, c }) => r * COLS + c)
+                        .sort()
+                        .join(","),
+                    oldKey = hoverGroup
+                        .map(({ r, c }) => r * COLS + c)
+                        .sort()
+                        .join(",");
+                if (newKey === oldKey) return;
+                hoverGroup = group;
+                hoverScore = calcScore(group.length);
+                groupVal.textContent = "+" + hoverScore;
+                _hoverSetKey = "";
+                sfxHover();
+                render();
+            }
+            function handleClick(clientX, clientY) {
+                if (!started || gameOver || animPhase !== "idle") return;
+                const cell = getCellFromPos(clientX, clientY);
+                if (!cell) return;
+                const group = findGroup(board, cell.r, cell.c);
+                if (group.length < 2) return;
+                pushUndo();
+                const pts = calcScore(group.length);
+                score += pts;
+                removingCells = group.map(({ r, c }) => ({
+                    r,
+                    c,
+                    color: board[r * COLS + c],
+                }));
+                _removingSetKey = "";
+                removingStart = Date.now();
+                animPhase = "removing";
+                hoverGroup = [];
+                _hoverSetKey = "";
+                hoverScore = 0;
+                createRemoveParticles(removingCells);
+                sfxRemove(group.length);
+                if (group.length >= 10) {
+                    sfxBigBonus();
+                    showBonus(t("cleared") + pts.toLocaleString(getLocale()));
+                }
+                updateUI();
+                render();
+            }
+            boardCanvas.addEventListener("mousemove", (e) => {
+                handleHover(e.clientX, e.clientY);
+                ensureAnimLoop();
+            });
+            boardCanvas.addEventListener("click", (e) => {
+                handleClick(e.clientX, e.clientY);
+                ensureAnimLoop();
+            });
+            boardCanvas.addEventListener("contextmenu", (e) => {
+                e.preventDefault();
+                doUndo();
+            });
+            boardCanvas.addEventListener("mouseleave", () => {
+                if (hoverGroup.length > 0) {
+                    hoverGroup = [];
+                    hoverScore = 0;
+                    groupVal.textContent = "0";
+                    render();
+                    ensureAnimLoop();
+                }
+            });
+            document.addEventListener("keydown", (e) => {
+                if (
+                    e.key === "u" ||
+                    e.key === "U" ||
+                    (e.key === "z" && (e.ctrlKey || e.metaKey))
+                ) {
+                    e.preventDefault();
+                    doUndo();
+                }
+            });
+
+            // ============ GAME CONTROL ============
+            let firstGame = true;
+            function resetGameState(boardStr, replayIdx) {
+                stringToBoard(boardStr);
+                initialBoardStr = boardStr;
+                replaySourceIndex = replayIdx;
+                score = 0;
+                started = true;
+                gameOver = false;
+                gameOverScoreSaved = false;
+                hoverGroup = [];
+                hoverScore = 0;
+                undoStack = [];
+                removingCells = [];
+                _removingSet = new Set();
+                _removingSetKey = "";
+                fallAnims = [];
+                compactAnims = [];
+                animPhase = "idle";
+                particleCount = 0;
+                _hoverSetKey = "";
+                fallAnimMap.clear();
+                compactAnimMap.clear();
+                startOverlay.classList.add("hidden");
+                gameoverOverlay.classList.add("hidden");
+            }
+            function startNewGame() {
+                initAudio();
+                sfxStart();
+                if (firstGame) {
+                    firstGame = false;
+                    resetGameState(initialBoardStr, -1);
+                } else {
+                    createBoard();
+                    resetGameState(boardToString(board), -1);
+                }
+                updateUI();
+                render();
+                ensureAnimLoop();
+            }
+            function startReplay(index) {
+                if (animPhase !== "idle") return;
+                const lb = loadLeaderboard();
+                if (index < 0 || index >= lb.length || !lb[index].board) return;
+                if (started && !gameOver && score > 0) saveScore(score);
+                initAudio();
+                sfxStart();
+                resetGameState(lb[index].board, index);
+                updateUI();
+                render();
+                ensureAnimLoop();
+            }
+
+            document.getElementById("lb-btn").addEventListener("click", () => {
+                if (!startOverlay.classList.contains("hidden")) {
+                    startOverlay.classList.add("hidden");
+                } else {
+                    renderOverlayLeaderboard();
+                    startOverlay.classList.remove("hidden");
+                }
+            });
+            startOverlay.addEventListener("click", (e) => {
+                if (e.target === startOverlay)
+                    startOverlay.classList.add("hidden");
+            });
+            document
+                .getElementById("restart-btn")
+                .addEventListener("click", startNewGame);
+            playSideBtn.addEventListener("click", startNewGame);
+            document
+                .getElementById("undo-btn")
+                .addEventListener("click", doUndo);
+            document
+                .getElementById("lang-toggle")
+                .addEventListener("click", toggleLang);
+            document
+                .getElementById("sound-btn")
+                .addEventListener("click", toggleSound);
+
+            boardCanvas.addEventListener("webglcontextlost", (e) => {
+                e.preventDefault();
+                if (animFrame) {
+                    cancelAnimationFrame(animFrame);
+                    animFrame = null;
+                }
+                animPhase = "idle";
+                particleCount = 0;
+            });
+            boardCanvas.addEventListener("webglcontextrestored", () => {
+                initWebGL();
+                render();
+                ensureAnimLoop();
+            });
+
+            // ============ INIT ============
+            loadLang();
+            loadSoundPref();
+            updateSoundBtn();
+            applyLang();
+            initWebGL();
+            createBoard();
+            initialBoardStr = boardToString(board);
+            updateUI();
+            render();
+            renderOverlayLeaderboard();
+            animFrame = requestAnimationFrame(animLoop);
+        </script>
+        <script>
+            if ("serviceWorker" in navigator) {
+                window.addEventListener("load", () => {
+                    navigator.serviceWorker
+                        .register("./sw.js")
+                        .then((reg) =>
+                            console.log("SW зарегистрирован:", reg.scope),
+                        )
+                        .catch((err) => console.error("Ошибка SW:", err));
+                });
+            }
+        </script>
+    </body>
+</html>
