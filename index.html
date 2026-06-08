@@ -374,7 +374,6 @@
                     </div>
                     <div id="gameover-overlay" class="overlay hidden">
                         <h2 style="color: #f0a8b8">КОНЕЦ ИГРЫ</h2>
-                        <p class="score-text" id="final-score"></p>
                         <p
                             class="score-text"
                             id="final-bonus"
@@ -819,7 +818,6 @@
             const bonusPopup = document.getElementById("bonus-popup");
             const startOverlay = document.getElementById("start-overlay");
             const gameoverOverlay = document.getElementById("gameover-overlay");
-            const finalScoreEl = document.getElementById("final-score");
             const finalBonusEl = document.getElementById("final-bonus");
             const scoreVal = document.getElementById("score-val");
             const groupVal = document.getElementById("group-val");
@@ -1831,14 +1829,9 @@
             function showGameOver(info) {
                 gameoverOverlay.classList.remove("hidden");
                 if (!info) info = countCubes(board);
-                finalScoreEl.textContent =
-                    t("scoreLabel") + score.toLocaleString(getLocale());
                 finalBonusEl.style.color = "#fce4a8";
                 if (info.total === 0) {
-                    finalBonusEl.style.display = "";
-                    finalBonusEl.textContent =
-                        t("perfectClear") +
-                        PERFECT_CLEAR_BONUS.toLocaleString(getLocale());
+                    finalBonusEl.style.display = "none";
                 } else if (replaySourceIndex >= 0) {
                     const replayEntry = loadLeaderboard().find(
                         (e) => e.board === initialBoardStr,
