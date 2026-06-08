@@ -19,7 +19,7 @@
             name="description"
             content="Cubes puzzle game - match and remove groups of same-colored cubes"
         />
-        <title>Кубики</title>
+        <title>КУБИКИ</title>
         <style>
             * {
                 margin: 0;
@@ -32,18 +32,19 @@
                 font-family: "Courier New", Courier, monospace;
                 display: flex;
                 justify-content: center;
-                align-items: center;
+                align-items: flex-start;
                 min-height: 100vh;
                 user-select: none;
                 -webkit-user-select: none;
                 overflow: hidden;
+                padding: 16px;
             }
             #wrapper {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                gap: 12px;
-                padding: 12px;
+                gap: 16px;
+                padding: 0;
             }
             #title-row {
                 display: flex;
@@ -78,6 +79,7 @@
                 display: flex;
                 gap: 20px;
                 align-items: flex-start;
+                margin-top: 10px;
             }
             #board-container {
                 position: relative;
@@ -93,7 +95,9 @@
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                justify-content: center;
+                justify-content: flex-start;
+                padding-top: 40px;
+                overflow-y: auto;
                 background: rgba(10, 10, 10, 0.78);
                 backdrop-filter: blur(6px);
                 -webkit-backdrop-filter: blur(6px);
@@ -133,8 +137,8 @@
             }
 
             .overlay-lb {
-                width: 85%;
-                max-width: 360px;
+                width: 70%;
+                max-width: 280px;
                 margin-bottom: 16px;
             }
             .overlay-lb .olb-title {
@@ -184,12 +188,12 @@
             }
             .overlay-lb .olb-score {
                 font-weight: bold;
-                margin-left: auto;
                 font-variant-numeric: tabular-nums;
             }
             .overlay-lb .olb-date {
                 color: #555;
-                font-size: 0.55rem;
+                font-size: 0.6rem;
+                margin-left: auto;
             }
             .overlay-lb .olb-empty {
                 color: #555;
@@ -254,29 +258,6 @@
                 box-shadow: 0 4px 20px rgba(252, 228, 168, 0.5);
             }
 
-            #lb-btn {
-                padding: 8px 0;
-                width: 100%;
-                background: rgba(255, 255, 255, 0.06);
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                color: #999;
-                font-family: inherit;
-                font-size: 0.75rem;
-                font-weight: bold;
-                letter-spacing: 0.08em;
-                cursor: pointer;
-                border-radius: 6px;
-                transition:
-                    background 0.15s,
-                    color 0.15s,
-                    border-color 0.15s;
-            }
-            #lb-btn:hover {
-                background: rgba(255, 255, 255, 0.1);
-                color: #fff;
-                border-color: rgba(255, 255, 255, 0.2);
-            }
-
             .stats-box {
                 background: rgba(255, 255, 255, 0.03);
                 border: 1px solid rgba(255, 255, 255, 0.06);
@@ -336,13 +317,15 @@
                 color: #fff;
                 border-color: rgba(255, 255, 255, 0.2);
             }
-            #side-btns button.active {
+            #side-btns button.sound-on {
+                background: rgba(252, 228, 168, 0.08);
+                border-color: rgba(252, 228, 168, 0.2);
                 color: #fce4a8;
-                border-color: rgba(252, 228, 168, 0.3);
             }
-            #side-btns button s {
-                text-decoration: line-through;
-                text-decoration-color: #f66;
+            #side-btns button.sound-off {
+                background: rgba(255, 255, 255, 0.05);
+                border-color: rgba(255, 255, 255, 0.1);
+                color: #666;
             }
 
             #bonus-popup {
@@ -394,7 +377,6 @@
                     </div>
                     <div id="gameover-overlay" class="overlay hidden">
                         <h2 style="color: #f0a8b8">КОНЕЦ ИГРЫ</h2>
-                        <p class="score-text" id="final-score"></p>
                         <p
                             class="score-text"
                             id="final-bonus"
@@ -404,14 +386,18 @@
                                 display: none;
                             "
                         ></p>
-                        <button id="restart-btn">ЗАНОВО</button>
+                        <div class="overlay-lb">
+                            <div class="olb-title" id="gameover-lb-title">
+                                ТОП-10
+                            </div>
+                            <div id="gameover-lb-content"></div>
+                        </div>
                     </div>
                 </div>
                 <div id="side">
                     <div id="side-btns">
-                        <button id="undo-btn">↩ ОТМЕНА</button>
-                        <button id="sound-btn" class="active">♪</button>
                         <button id="lang-toggle">EN</button>
+                        <button id="sound-btn" class="sound-on"></button>
                     </div>
                     <div class="info-box">
                         <p class="label">Счёт</p>
@@ -429,7 +415,6 @@
                         <div id="stats-content"></div>
                     </div>
                     <button id="play-side-btn">ИГРАТЬ</button>
-                    <button id="lb-btn">ТОП-10</button>
                 </div>
             </div>
         </div>
@@ -488,7 +473,7 @@
                 К: [
                     [1, 0, 0, 0, 1],
                     [1, 0, 0, 1, 0],
-                    [1, 0, 1, 0, 0],
+                    [1, 1, 1, 0, 0],
                     [1, 0, 0, 1, 0],
                     [1, 0, 0, 0, 1],
                 ],
@@ -497,7 +482,7 @@
                     [0, 1, 0, 1, 0],
                     [0, 0, 1, 0, 0],
                     [0, 0, 1, 0, 0],
-                    [0, 0, 1, 0, 0],
+                    [0, 1, 0, 0, 0],
                 ],
                 Б: [
                     [1, 1, 1, 1, 0],
@@ -576,18 +561,38 @@
             let soundEnabled = true;
             let audioCtx = null;
 
+            function createAudioCtx() {
+                try {
+                    audioCtx = new (
+                        window.AudioContext || window.webkitAudioContext
+                    )();
+                } catch (e) {
+                    audioCtx = null;
+                    soundEnabled = false;
+                }
+                if (audioCtx) {
+                    audioCtx.onstatechange = function () {
+                        if (audioCtx && audioCtx.state === "interrupted")
+                            audioCtx.resume().catch(function () {});
+                    };
+                }
+            }
+
             function initAudio() {
                 if (!audioCtx && soundEnabled) {
-                    try {
-                        audioCtx = new (
-                            window.AudioContext || window.webkitAudioContext
-                        )();
-                    } catch (e) {
-                        soundEnabled = false;
+                    createAudioCtx();
+                }
+                if (audioCtx) {
+                    if (
+                        audioCtx.state === "suspended" ||
+                        audioCtx.state === "interrupted"
+                    ) {
+                        audioCtx.resume().catch(() => {});
+                    } else if (audioCtx.state === "closed") {
+                        audioCtx = null;
+                        createAudioCtx();
                     }
                 }
-                if (audioCtx && audioCtx.state === "suspended")
-                    audioCtx.resume().catch(() => {});
             }
 
             function loadSoundPref() {
@@ -615,13 +620,31 @@
             const soundBtnEl = document.getElementById("sound-btn");
             function updateSoundBtn() {
                 if (soundBtnEl) {
-                    soundBtnEl.innerHTML = soundEnabled ? "♪" : "<s>♪</s>";
-                    soundBtnEl.classList.toggle("active", soundEnabled);
+                    if (soundEnabled) {
+                        soundBtnEl.className = "sound-on";
+                        soundBtnEl.innerHTML =
+                            '<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>';
+                    } else {
+                        soundBtnEl.className = "sound-off";
+                        soundBtnEl.innerHTML =
+                            '<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg></span>';
+                    }
                 }
             }
 
             function playTone(freq, duration, volume, type) {
-                if (!soundEnabled || !audioCtx) return;
+                if (!soundEnabled) return;
+                if (!audioCtx || audioCtx.state === "closed") {
+                    audioCtx = null;
+                    createAudioCtx();
+                }
+                if (!audioCtx) return;
+                if (
+                    audioCtx.state === "suspended" ||
+                    audioCtx.state === "interrupted"
+                ) {
+                    audioCtx.resume().catch(() => {});
+                }
                 try {
                     const osc = audioCtx.createOscillator(),
                         gain = audioCtx.createGain();
@@ -637,8 +660,19 @@
                     gain.connect(audioCtx.destination);
                     osc.start(audioCtx.currentTime);
                     osc.stop(audioCtx.currentTime + duration);
-                } catch (e) {}
+                } catch (e) {
+                    audioCtx = null;
+                    createAudioCtx();
+                }
             }
+
+            // Resume audio after system wake-up or tab focus
+            document.addEventListener("visibilitychange", function () {
+                if (!document.hidden) initAudio();
+            });
+            window.addEventListener("pageshow", function () {
+                initAudio();
+            });
 
             function sfxRemove(groupSize) {
                 const baseFreq = 440 + Math.min(groupSize, 20) * 20,
@@ -776,11 +810,10 @@
                 buildTitle();
                 document.getElementById("play-side-btn").textContent =
                     t("play");
-                document.getElementById("lb-btn").textContent = t("top10");
+
                 document.querySelector("#gameover-overlay h2").textContent =
                     t("gameOver");
-                document.getElementById("restart-btn").textContent =
-                    t("restart");
+
                 const labels = document.querySelectorAll(
                     "#side .info-box .label",
                 );
@@ -791,7 +824,9 @@
                     ".overlay-lb .olb-title",
                 );
                 if (olbTitle) olbTitle.textContent = t("leaderboard");
-                document.getElementById("undo-btn").textContent = t("undo");
+                const golbTitle = document.getElementById("gameover-lb-title");
+                if (golbTitle) golbTitle.textContent = t("leaderboard");
+
                 document.getElementById("lang-toggle").textContent =
                     lang === "ru" ? "EN" : "RU";
                 renderOverlayLeaderboard();
@@ -815,7 +850,6 @@
             const bonusPopup = document.getElementById("bonus-popup");
             const startOverlay = document.getElementById("start-overlay");
             const gameoverOverlay = document.getElementById("gameover-overlay");
-            const finalScoreEl = document.getElementById("final-score");
             const finalBonusEl = document.getElementById("final-bonus");
             const scoreVal = document.getElementById("score-val");
             const groupVal = document.getElementById("group-val");
@@ -1826,9 +1860,8 @@
 
             function showGameOver(info) {
                 gameoverOverlay.classList.remove("hidden");
+                renderLeaderboardInto("gameover-lb-content");
                 if (!info) info = countCubes(board);
-                finalScoreEl.textContent =
-                    t("scoreLabel") + score.toLocaleString(getLocale());
                 finalBonusEl.style.color = "#fce4a8";
                 if (info.total === 0) {
                     finalBonusEl.style.display = "";
@@ -1881,6 +1914,7 @@
                     dateStr = new Date().toLocaleDateString(getLocale(), {
                         day: "2-digit",
                         month: "2-digit",
+                        year: "numeric",
                     });
                 if (replaySourceIndex >= 0) {
                     const replayIdx = lb.findIndex(
@@ -1905,8 +1939,8 @@
                 renderOverlayLeaderboard();
             }
 
-            function renderOverlayLeaderboard() {
-                const el = document.getElementById("overlay-lb-content");
+            function renderLeaderboardInto(containerId) {
+                const el = document.getElementById(containerId);
                 if (!el) return;
                 const lb = loadLeaderboard();
                 if (lb.length === 0) {
@@ -1935,6 +1969,10 @@
                         if (!isNaN(idx)) startReplay(idx);
                     });
                 });
+            }
+            function renderOverlayLeaderboard() {
+                renderLeaderboardInto("overlay-lb-content");
+                renderLeaderboardInto("gameover-lb-content");
             }
 
             // ============ INPUT ============
@@ -2108,25 +2146,13 @@
                 ensureAnimLoop();
             }
 
-            document.getElementById("lb-btn").addEventListener("click", () => {
-                if (!startOverlay.classList.contains("hidden")) {
-                    startOverlay.classList.add("hidden");
-                } else {
-                    renderOverlayLeaderboard();
-                    startOverlay.classList.remove("hidden");
-                }
-            });
             startOverlay.addEventListener("click", (e) => {
                 if (e.target === startOverlay)
                     startOverlay.classList.add("hidden");
             });
-            document
-                .getElementById("restart-btn")
-                .addEventListener("click", startNewGame);
+
             playSideBtn.addEventListener("click", startNewGame);
-            document
-                .getElementById("undo-btn")
-                .addEventListener("click", doUndo);
+
             document
                 .getElementById("lang-toggle")
                 .addEventListener("click", toggleLang);
