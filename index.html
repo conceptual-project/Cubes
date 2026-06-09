@@ -693,9 +693,7 @@
                 bgCtx.lineTo(BW, y * CELL);
                 bgCtx.stroke();
             }
-            bgCtx.strokeStyle = "rgba(255,255,255,0.1)";
-            bgCtx.lineWidth = 2;
-            bgCtx.strokeRect(0, 0, BW, BH);
+            // Border handled by .board-wrap CSS
 
             // Pre-render cell atlas (normal row + highlighted row)
             const atlasCanvas = document.createElement("canvas");
