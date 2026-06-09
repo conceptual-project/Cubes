@@ -2,6 +2,7 @@
 <html lang="ru">
     <head>
         <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0d0d0d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -719,7 +720,7 @@
                 leaderboard: { ru: "Топ-10", en: "Top-10" },
                 noRecords: { ru: "Пока нет рекордов", en: "No records yet" },
                 scoreLabel: { ru: "Счёт: ", en: "Score: " },
-                cleared: { ru: "Очистка! +", en: "Clear! +" },
+                cleared: { ru: "Очистка! +", en: "CLEARED! +" },
                 perfectClear: {
                     ru: "ИДЕАЛЬНАЯ ОЧИСТКА! +",
                     en: "PERFECT CLEAR! +",
@@ -825,347 +826,166 @@
             const statsContent = document.getElementById("stats-content");
             const playSideBtn = document.getElementById("play-side-btn");
 
-            // ============ WEBGL2 SETUP ============
+            // ============ CANVAS 2D SETUP ============
             boardCanvas.width = BW;
             boardCanvas.height = BH;
-            let gl = null;
-            let GL = {};
+            const ctx = boardCanvas.getContext("2d");
 
-            function initWebGL() {
-                gl = boardCanvas.getContext("webgl2", {
-                    alpha: false,
-                    antialias: false,
-                    premultipliedAlpha: false,
-                });
-                if (!gl) {
-                    document.body.innerHTML =
-                        '<h2 style="color:#f88;text-align:center;margin-top:40vh">WebGL2 не поддерживается</h2>';
-                    return;
+            // Helper: rounded rectangle path
+            function roundRect(ctx, x, y, w, h, radii) {
+                let tl, tr, br, bl;
+                if (Array.isArray(radii)) {
+                    [tl, tr, br, bl] = radii;
+                } else {
+                    tl = tr = br = bl = radii;
                 }
-
-                const BG_VS = `#version 300 es\nlayout(location=0) in vec2 a_pos; out vec2 v_uv; void main(){ gl_Position=vec4(a_pos,0,1); v_uv=a_pos*0.5+0.5; }`;
-                const BG_FS = `#version 300 es\nprecision mediump float; in vec2 v_uv; uniform sampler2D u_tex; out vec4 fc; void main(){ fc=texture(u_tex,v_uv); }`;
-                const CELL_VS = `#version 300 es\nlayout(location=0) in vec2 a_pos; layout(location=1) in vec2 a_off; layout(location=2) in float a_sz; layout(location=3) in vec4 a_uv; layout(location=4) in float a_alpha; uniform vec2 u_res; out vec2 v_uv; out float v_a; void main(){ vec2 px=a_off+a_pos*a_sz; vec2 cp=(px/u_res)*2.0-1.0; cp.y*=-1.0; gl_Position=vec4(cp,0,1); v_uv=a_uv.xy+a_pos*a_uv.zw; v_a=a_alpha; }`;
-                const CELL_FS = `#version 300 es\nprecision mediump float; in vec2 v_uv; in float v_a; uniform sampler2D u_tex; out vec4 fc; void main(){ vec4 t=texture(u_tex,v_uv); fc=vec4(t.rgb,t.a*v_a); }`;
-                const PART_VS = `#version 300 es\nlayout(location=0) in vec2 a_pos; layout(location=1) in float a_sz; layout(location=2) in vec4 a_col; uniform vec2 u_res; out vec4 v_col; void main(){ vec2 cp=(a_pos/u_res)*2.0-1.0; cp.y*=-1.0; gl_Position=vec4(cp,0,1); gl_PointSize=a_sz*2.0; v_col=a_col; }`;
-                const PART_FS = `#version 300 es\nprecision mediump float; in vec4 v_col; out vec4 fc; void main(){ vec2 c=gl_PointCoord-0.5; float d=length(c); if(d>0.5)discard; float a=v_col.a*smoothstep(0.5,0.05,d); fc=vec4(v_col.rgb,a); }`;
-
-                function compileShader(src, type) {
-                    const s = gl.createShader(type);
-                    gl.shaderSource(s, src);
-                    gl.compileShader(s);
-                    return s;
-                }
-                function createProgram(vs, fs) {
-                    const p = gl.createProgram(),
-                        vShader = compileShader(vs, gl.VERTEX_SHADER),
-                        fShader = compileShader(fs, gl.FRAGMENT_SHADER);
-                    gl.attachShader(p, vShader);
-                    gl.attachShader(p, fShader);
-                    gl.linkProgram(p);
-                    gl.detachShader(p, vShader);
-                    gl.deleteShader(vShader);
-                    gl.detachShader(p, fShader);
-                    gl.deleteShader(fShader);
-                    return p;
-                }
-
-                GL.bgProg = createProgram(BG_VS, BG_FS);
-                GL.cellProg = createProgram(CELL_VS, CELL_FS);
-                GL.partProg = createProgram(PART_VS, PART_FS);
-                GL.bgU_tex = gl.getUniformLocation(GL.bgProg, "u_tex");
-                GL.cellU_res = gl.getUniformLocation(GL.cellProg, "u_res");
-                GL.cellU_tex = gl.getUniformLocation(GL.cellProg, "u_tex");
-                GL.partU_res = gl.getUniformLocation(GL.partProg, "u_res");
-                GL.cellA_pos = gl.getAttribLocation(GL.cellProg, "a_pos");
-                GL.cellA_off = gl.getAttribLocation(GL.cellProg, "a_off");
-                GL.cellA_sz = gl.getAttribLocation(GL.cellProg, "a_sz");
-                GL.cellA_uv = gl.getAttribLocation(GL.cellProg, "a_uv");
-                GL.cellA_alpha = gl.getAttribLocation(GL.cellProg, "a_alpha");
-                GL.partA_pos = gl.getAttribLocation(GL.partProg, "a_pos");
-                GL.partA_sz = gl.getAttribLocation(GL.partProg, "a_sz");
-                GL.partA_col = gl.getAttribLocation(GL.partProg, "a_col");
-
-                function roundRect(ctx, x, y, w, h, radii) {
-                    let tl, tr, br, bl;
-                    if (Array.isArray(radii)) {
-                        [tl, tr, br, bl] = radii;
-                    } else {
-                        tl = tr = br = bl = radii;
-                    }
-                    ctx.beginPath();
-                    ctx.moveTo(x + tl, y);
-                    ctx.lineTo(x + w - tr, y);
-                    ctx.quadraticCurveTo(x + w, y, x + w, y + tr);
-                    ctx.lineTo(x + w, y + h - br);
-                    ctx.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
-                    ctx.lineTo(x + bl, y + h);
-                    ctx.quadraticCurveTo(x, y + h, x, y + h - bl);
-                    ctx.lineTo(x, y + tl);
-                    ctx.quadraticCurveTo(x, y, x + tl, y);
-                    ctx.closePath();
-                }
-                function drawGlassCell(
+                ctx.beginPath();
+                ctx.moveTo(x + tl, y);
+                ctx.lineTo(x + w - tr, y);
+                ctx.quadraticCurveTo(x + w, y, x + w, y + tr);
+                ctx.lineTo(x + w, y + h - br);
+                ctx.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+                ctx.lineTo(x + bl, y + h);
+                ctx.quadraticCurveTo(x, y + h, x, y + h - bl);
+                ctx.lineTo(x, y + tl);
+                ctx.quadraticCurveTo(x, y, x + tl, y);
+                ctx.closePath();
+            }
+            // Helper: draw a glass-style cell
+            function drawGlassCell(
+                ctx,
+                x,
+                y,
+                colorIdx,
+                cellSize,
+                highlight,
+            ) {
+                const co = COLORS[colorIdx],
+                    px = x * cellSize,
+                    py = y * cellSize,
+                    cs = cellSize,
+                    r = 3;
+                ctx.save();
+                const grad = ctx.createLinearGradient(px, py, px, py + cs);
+                grad.addColorStop(0, co.light);
+                grad.addColorStop(0.35, co.base);
+                grad.addColorStop(0.7, co.mid);
+                grad.addColorStop(1, co.dark);
+                ctx.fillStyle = grad;
+                roundRect(ctx, px + 0.5, py + 0.5, cs - 1, cs - 1, r);
+                ctx.fill();
+                ctx.strokeStyle = "rgba(255,255,255,0.25)";
+                ctx.lineWidth = 1;
+                roundRect(ctx, px + 1.5, py + 1.5, cs - 3, cs - 3, r - 0.5);
+                ctx.stroke();
+                const shineH = cs * SHINE_HEIGHT;
+                ctx.globalAlpha = SHINE_OPACITY;
+                const shG = ctx.createLinearGradient(
+                    px,
+                    py,
+                    px,
+                    py + shineH,
+                );
+                shG.addColorStop(0, "rgba(255,255,255,0.7)");
+                shG.addColorStop(1, "rgba(255,255,255,0)");
+                ctx.fillStyle = shG;
+                roundRect(ctx, px + 2, py + 2, cs - 4, shineH, [
+                    r - 1,
+                    r - 1,
+                    0,
+                    0,
+                ]);
+                ctx.fill();
+                ctx.globalAlpha = 0.6;
+                ctx.fillStyle = "#fff";
+                ctx.beginPath();
+                ctx.ellipse(
+                    px + cs * SPECULAR_X,
+                    py + cs * SPECULAR_Y,
+                    cs * SPECULAR_RX,
+                    cs * SPECULAR_RY,
+                    -0.3,
+                    0,
+                    Math.PI * 2,
+                );
+                ctx.fill();
+                ctx.globalAlpha = 0.15;
+                const sG = ctx.createLinearGradient(
+                    px,
+                    py + cs * SHADOW_START,
+                    px,
+                    py + cs,
+                );
+                sG.addColorStop(0, "rgba(0,0,0,0)");
+                sG.addColorStop(1, "rgba(0,0,0,0.5)");
+                ctx.fillStyle = sG;
+                roundRect(
                     ctx,
-                    x,
-                    y,
-                    colorIdx,
-                    cellSize,
-                    highlight,
-                ) {
-                    const co = COLORS[colorIdx],
-                        px = x * cellSize,
-                        py = y * cellSize,
-                        cs = cellSize,
-                        r = 3;
-                    ctx.save();
-                    const grad = ctx.createLinearGradient(px, py, px, py + cs);
-                    grad.addColorStop(0, co.light);
-                    grad.addColorStop(0.35, co.base);
-                    grad.addColorStop(0.7, co.mid);
-                    grad.addColorStop(1, co.dark);
-                    ctx.fillStyle = grad;
+                    px + 2,
+                    py + cs * SHADOW_START,
+                    cs - 4,
+                    cs * 0.33,
+                    [0, 0, r - 1, r - 1],
+                );
+                ctx.fill();
+                ctx.globalAlpha = GLOW_OPACITY;
+                ctx.shadowColor = co.base;
+                ctx.shadowBlur = 8;
+                ctx.fillStyle = co.base;
+                roundRect(ctx, px, py, cs, cs, r);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                if (highlight) {
+                    ctx.globalAlpha = 0.25;
+                    ctx.fillStyle = "#fff";
                     roundRect(ctx, px + 0.5, py + 0.5, cs - 1, cs - 1, r);
                     ctx.fill();
-                    ctx.strokeStyle = "rgba(255,255,255,0.25)";
-                    ctx.lineWidth = 1;
-                    roundRect(ctx, px + 1.5, py + 1.5, cs - 3, cs - 3, r - 0.5);
-                    ctx.stroke();
-                    const shineH = cs * SHINE_HEIGHT;
-                    ctx.globalAlpha = SHINE_OPACITY;
-                    const shG = ctx.createLinearGradient(
-                        px,
-                        py,
-                        px,
-                        py + shineH,
-                    );
-                    shG.addColorStop(0, "rgba(255,255,255,0.7)");
-                    shG.addColorStop(1, "rgba(255,255,255,0)");
-                    ctx.fillStyle = shG;
-                    roundRect(ctx, px + 2, py + 2, cs - 4, shineH, [
-                        r - 1,
-                        r - 1,
-                        0,
-                        0,
-                    ]);
-                    ctx.fill();
                     ctx.globalAlpha = 0.6;
-                    ctx.fillStyle = "#fff";
-                    ctx.beginPath();
-                    ctx.ellipse(
-                        px + cs * SPECULAR_X,
-                        py + cs * SPECULAR_Y,
-                        cs * SPECULAR_RX,
-                        cs * SPECULAR_RY,
-                        -0.3,
-                        0,
-                        Math.PI * 2,
-                    );
-                    ctx.fill();
-                    ctx.globalAlpha = 0.15;
-                    const sG = ctx.createLinearGradient(
-                        px,
-                        py + cs * SHADOW_START,
-                        px,
-                        py + cs,
-                    );
-                    sG.addColorStop(0, "rgba(0,0,0,0)");
-                    sG.addColorStop(1, "rgba(0,0,0,0.5)");
-                    ctx.fillStyle = sG;
-                    roundRect(
-                        ctx,
-                        px + 2,
-                        py + cs * SHADOW_START,
-                        cs - 4,
-                        cs * 0.33,
-                        [0, 0, r - 1, r - 1],
-                    );
-                    ctx.fill();
-                    ctx.globalAlpha = GLOW_OPACITY;
-                    ctx.shadowColor = co.base;
-                    ctx.shadowBlur = 8;
-                    ctx.fillStyle = co.base;
-                    roundRect(ctx, px, py, cs, cs, r);
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                    if (highlight) {
-                        ctx.globalAlpha = 0.25;
-                        ctx.fillStyle = "#fff";
-                        roundRect(ctx, px + 0.5, py + 0.5, cs - 1, cs - 1, r);
-                        ctx.fill();
-                        ctx.globalAlpha = 0.6;
-                        ctx.strokeStyle = "#fff";
-                        ctx.lineWidth = 1.5;
-                        roundRect(ctx, px + 1, py + 1, cs - 2, cs - 2, r);
-                        ctx.stroke();
-                    }
-                    ctx.globalAlpha = 1;
-                    ctx.restore();
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 1.5;
+                    roundRect(ctx, px + 1, py + 1, cs - 2, cs - 2, r);
+                    ctx.stroke();
                 }
+                ctx.globalAlpha = 1;
+                ctx.restore();
+            }
 
-                const atlasCanvas = document.createElement("canvas");
-                atlasCanvas.width = NUM_COLORS * CELL;
-                atlasCanvas.height = 2 * CELL;
-                const atlasCtx = atlasCanvas.getContext("2d");
-                for (let i = 0; i < NUM_COLORS; i++) {
-                    drawGlassCell(atlasCtx, i, 0, i, CELL, false);
-                    drawGlassCell(atlasCtx, i, 1, i, CELL, true);
-                }
-                GL.cellUVTable = [];
-                for (let i = 0; i < NUM_COLORS; i++) {
-                    GL.cellUVTable[i] = {
-                        0: [
-                            (i * CELL) / atlasCanvas.width,
-                            0,
-                            CELL / atlasCanvas.width,
-                            CELL / atlasCanvas.height,
-                        ],
-                        1: [
-                            (i * CELL) / atlasCanvas.width,
-                            CELL / atlasCanvas.height,
-                            CELL / atlasCanvas.width,
-                            CELL / atlasCanvas.height,
-                        ],
-                    };
-                }
+            // Pre-render background
+            const bgCanvas = document.createElement("canvas");
+            bgCanvas.width = BW;
+            bgCanvas.height = BH;
+            const bgCtx = bgCanvas.getContext("2d");
+            const bgG = bgCtx.createLinearGradient(0, 0, 0, BH);
+            bgG.addColorStop(0, "#0e0e18");
+            bgG.addColorStop(1, "#0a0a10");
+            bgCtx.fillStyle = bgG;
+            bgCtx.fillRect(0, 0, BW, BH);
+            bgCtx.strokeStyle = "rgba(255,255,255,0.03)";
+            bgCtx.lineWidth = 0.5;
+            for (let x = 0; x <= COLS; x++) {
+                bgCtx.beginPath();
+                bgCtx.moveTo(x * CELL, 0);
+                bgCtx.lineTo(x * CELL, BH);
+                bgCtx.stroke();
+            }
+            for (let y = 0; y <= ROWS; y++) {
+                bgCtx.beginPath();
+                bgCtx.moveTo(0, y * CELL);
+                bgCtx.lineTo(BW, y * CELL);
+                bgCtx.stroke();
+            }
+            bgCtx.strokeStyle = "rgba(255,255,255,0.1)";
+            bgCtx.lineWidth = 2;
+            bgCtx.strokeRect(0, 0, BW, BH);
 
-                const bgCanvas = document.createElement("canvas");
-                bgCanvas.width = BW;
-                bgCanvas.height = BH;
-                const bgCtx = bgCanvas.getContext("2d");
-                const bgG = bgCtx.createLinearGradient(0, 0, 0, BH);
-                bgG.addColorStop(0, "#0e0e18");
-                bgG.addColorStop(1, "#0a0a10");
-                bgCtx.fillStyle = bgG;
-                bgCtx.fillRect(0, 0, BW, BH);
-                bgCtx.strokeStyle = "rgba(255,255,255,0.03)";
-                bgCtx.lineWidth = 0.5;
-                for (let x = 0; x <= COLS; x++) {
-                    bgCtx.beginPath();
-                    bgCtx.moveTo(x * CELL, 0);
-                    bgCtx.lineTo(x * CELL, BH);
-                    bgCtx.stroke();
-                }
-                for (let y = 0; y <= ROWS; y++) {
-                    bgCtx.beginPath();
-                    bgCtx.moveTo(0, y * CELL);
-                    bgCtx.lineTo(BW, y * CELL);
-                    bgCtx.stroke();
-                }
-                bgCtx.strokeStyle = "rgba(255,255,255,0.1)";
-                bgCtx.lineWidth = 2;
-                bgCtx.strokeRect(0, 0, BW, BH);
-
-                function createTex(canvas) {
-                    const t = gl.createTexture();
-                    gl.bindTexture(gl.TEXTURE_2D, t);
-                    gl.texImage2D(
-                        gl.TEXTURE_2D,
-                        0,
-                        gl.RGBA,
-                        gl.RGBA,
-                        gl.UNSIGNED_BYTE,
-                        canvas,
-                    );
-                    gl.texParameteri(
-                        gl.TEXTURE_2D,
-                        gl.TEXTURE_MIN_FILTER,
-                        gl.LINEAR,
-                    );
-                    gl.texParameteri(
-                        gl.TEXTURE_2D,
-                        gl.TEXTURE_WRAP_S,
-                        gl.CLAMP_TO_EDGE,
-                    );
-                    gl.texParameteri(
-                        gl.TEXTURE_2D,
-                        gl.TEXTURE_WRAP_T,
-                        gl.CLAMP_TO_EDGE,
-                    );
-                    return t;
-                }
-                GL.bgTex = createTex(bgCanvas);
-                GL.atlasTex = createTex(atlasCanvas);
-
-                GL.bgVao = gl.createVertexArray();
-                GL.bgBuf = gl.createBuffer();
-                gl.bindVertexArray(GL.bgVao);
-                gl.bindBuffer(gl.ARRAY_BUFFER, GL.bgBuf);
-                gl.bufferData(
-                    gl.ARRAY_BUFFER,
-                    new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
-                    gl.STATIC_DRAW,
-                );
-                gl.enableVertexAttribArray(0);
-                gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-                gl.bindVertexArray(null);
-
-                GL.cellQuadBuf = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, GL.cellQuadBuf);
-                gl.bufferData(
-                    gl.ARRAY_BUFFER,
-                    new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]),
-                    gl.STATIC_DRAW,
-                );
-                GL.cellInstBuf = gl.createBuffer();
-                GL.cellInstArr = new Float32Array((COLS * ROWS + 50) * 8);
-                gl.bindBuffer(gl.ARRAY_BUFFER, GL.cellInstBuf);
-                gl.bufferData(
-                    gl.ARRAY_BUFFER,
-                    GL.cellInstArr.byteLength,
-                    gl.DYNAMIC_DRAW,
-                );
-                GL.cellVao = gl.createVertexArray();
-                gl.bindVertexArray(GL.cellVao);
-                gl.bindBuffer(gl.ARRAY_BUFFER, GL.cellQuadBuf);
-                gl.enableVertexAttribArray(GL.cellA_pos);
-                gl.vertexAttribPointer(GL.cellA_pos, 2, gl.FLOAT, false, 0, 0);
-                gl.bindBuffer(gl.ARRAY_BUFFER, GL.cellInstBuf);
-                gl.enableVertexAttribArray(GL.cellA_off);
-                gl.vertexAttribPointer(GL.cellA_off, 2, gl.FLOAT, false, 32, 0);
-                gl.vertexAttribDivisor(GL.cellA_off, 1);
-                gl.enableVertexAttribArray(GL.cellA_sz);
-                gl.vertexAttribPointer(GL.cellA_sz, 1, gl.FLOAT, false, 32, 8);
-                gl.vertexAttribDivisor(GL.cellA_sz, 1);
-                gl.enableVertexAttribArray(GL.cellA_uv);
-                gl.vertexAttribPointer(GL.cellA_uv, 4, gl.FLOAT, false, 32, 12);
-                gl.vertexAttribDivisor(GL.cellA_uv, 1);
-                gl.enableVertexAttribArray(GL.cellA_alpha);
-                gl.vertexAttribPointer(
-                    GL.cellA_alpha,
-                    1,
-                    gl.FLOAT,
-                    false,
-                    32,
-                    28,
-                );
-                gl.vertexAttribDivisor(GL.cellA_alpha, 1);
-                gl.bindVertexArray(null);
-
-                GL.partBuf = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, GL.partBuf);
-                gl.bufferData(
-                    gl.ARRAY_BUFFER,
-                    MAX_PARTICLES * 7 * 4,
-                    gl.DYNAMIC_DRAW,
-                );
-                GL.partVao = gl.createVertexArray();
-                gl.bindVertexArray(GL.partVao);
-                gl.bindBuffer(gl.ARRAY_BUFFER, GL.partBuf);
-                gl.enableVertexAttribArray(GL.partA_pos);
-                gl.vertexAttribPointer(GL.partA_pos, 2, gl.FLOAT, false, 28, 0);
-                gl.enableVertexAttribArray(GL.partA_sz);
-                gl.vertexAttribPointer(GL.partA_sz, 1, gl.FLOAT, false, 28, 8);
-                gl.enableVertexAttribArray(GL.partA_col);
-                gl.vertexAttribPointer(
-                    GL.partA_col,
-                    4,
-                    gl.FLOAT,
-                    false,
-                    28,
-                    12,
-                );
-                gl.bindVertexArray(null);
+            // Pre-render cell atlas (normal row + highlighted row)
+            const atlasCanvas = document.createElement("canvas");
+            atlasCanvas.width = NUM_COLORS * CELL;
+            atlasCanvas.height = 2 * CELL;
+            const atlasCtx = atlasCanvas.getContext("2d");
+            for (let i = 0; i < NUM_COLORS; i++) {
+                drawGlassCell(atlasCtx, i, 0, i, CELL, false);
+                drawGlassCell(atlasCtx, i, 1, i, CELL, true);
             }
 
             // ============ GAME STATE ============
@@ -1559,26 +1379,14 @@
             }
 
             function render() {
-                if (!gl) return;
-                gl.viewport(0, 0, BW, BH);
-                gl.clearColor(0.05, 0.05, 0.08, 1);
-                gl.clear(gl.COLOR_BUFFER_BIT);
-                gl.enable(gl.BLEND);
-                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-                gl.useProgram(GL.bgProg);
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, GL.bgTex);
-                gl.uniform1i(GL.bgU_tex, 0);
-                gl.bindVertexArray(GL.bgVao);
-                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-                gl.bindVertexArray(null);
+                // Draw cached background
+                ctx.drawImage(bgCanvas, 0, 0);
 
                 rebuildHoverSet();
                 rebuildRemovingSet();
                 const now = Date.now();
-                let instCount = 0;
 
+                // Draw board cells
                 for (let r = 0; r < ROWS; r++) {
                     for (let c = 0; c < COLS; c++) {
                         const v = board[r * COLS + c];
@@ -1586,10 +1394,8 @@
                         const key = r * COLS + c;
                         if (_removingSet.has(key)) continue;
 
-                        let alpha = 1.0,
-                            offX = c * CELL,
+                        let offX = c * CELL,
                             offY = r * CELL,
-                            sz = CELL,
                             highlighted = _hoverSet.has(key);
 
                         if (animPhase === "falling") {
@@ -1623,74 +1429,69 @@
                             }
                         }
 
-                        const uv = GL.cellUVTable[v][highlighted ? 1 : 0];
-                        const idx = instCount * 8;
-                        GL.cellInstArr[idx] = offX;
-                        GL.cellInstArr[idx + 1] = offY;
-                        GL.cellInstArr[idx + 2] = sz;
-                        GL.cellInstArr[idx + 3] = uv[0];
-                        GL.cellInstArr[idx + 4] = uv[1];
-                        GL.cellInstArr[idx + 5] = uv[2];
-                        GL.cellInstArr[idx + 6] = uv[3];
-                        GL.cellInstArr[idx + 7] = alpha;
-                        instCount++;
+                        // Draw from atlas (column = color index, row 0 = normal, row 1 = highlighted)
+                        ctx.drawImage(
+                            atlasCanvas,
+                            v * CELL,
+                            highlighted ? CELL : 0,
+                            CELL,
+                            CELL,
+                            offX,
+                            offY,
+                            CELL,
+                            CELL,
+                        );
                     }
                 }
 
+                // Draw removing cells with fade and shrink animation
                 if (removingCells.length > 0 && animPhase === "removing") {
                     const t = Math.min(
                         (now - removingStart) / REMOVE_DURATION,
                         1,
                     );
+                    ctx.save();
                     for (const { r, c, color } of removingCells) {
-                        const alpha = 1 - t,
-                            scale = 1 - t * 0.5,
-                            sz = CELL * scale,
-                            offX = c * CELL + (CELL - sz) / 2,
-                            offY = r * CELL + (CELL - sz) / 2;
-                        const uv = GL.cellUVTable[color][1];
-                        const idx = instCount * 8;
-                        GL.cellInstArr[idx] = offX;
-                        GL.cellInstArr[idx + 1] = offY;
-                        GL.cellInstArr[idx + 2] = sz;
-                        GL.cellInstArr[idx + 3] = uv[0];
-                        GL.cellInstArr[idx + 4] = uv[1];
-                        GL.cellInstArr[idx + 5] = uv[2];
-                        GL.cellInstArr[idx + 6] = uv[3];
-                        GL.cellInstArr[idx + 7] = alpha;
-                        instCount++;
+                        const alpha = 1 - t;
+                        const scale = 1 - t * 0.5;
+                        const sz = CELL * scale;
+                        const offX = c * CELL + (CELL - sz) / 2;
+                        const offY = r * CELL + (CELL - sz) / 2;
+                        ctx.globalAlpha = alpha;
+                        ctx.drawImage(
+                            atlasCanvas,
+                            color * CELL,
+                            CELL,
+                            CELL,
+                            CELL,
+                            offX,
+                            offY,
+                            sz,
+                            sz,
+                        );
                     }
+                    ctx.restore();
                 }
 
-                if (instCount > 0) {
-                    gl.useProgram(GL.cellProg);
-                    gl.uniform2f(GL.cellU_res, BW, BH);
-                    gl.activeTexture(gl.TEXTURE0);
-                    gl.bindTexture(gl.TEXTURE_2D, GL.atlasTex);
-                    gl.uniform1i(GL.cellU_tex, 0);
-                    gl.bindBuffer(gl.ARRAY_BUFFER, GL.cellInstBuf);
-                    gl.bufferSubData(
-                        gl.ARRAY_BUFFER,
-                        0,
-                        GL.cellInstArr.subarray(0, instCount * 8),
-                    );
-                    gl.bindVertexArray(GL.cellVao);
-                    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, instCount);
-                    gl.bindVertexArray(null);
-                }
-
+                // Draw particles
                 if (particleCount > 0) {
-                    gl.useProgram(GL.partProg);
-                    gl.uniform2f(GL.partU_res, BW, BH);
-                    gl.bindBuffer(gl.ARRAY_BUFFER, GL.partBuf);
-                    gl.bufferSubData(
-                        gl.ARRAY_BUFFER,
-                        0,
-                        partArr.subarray(0, particleCount * 7),
-                    );
-                    gl.bindVertexArray(GL.partVao);
-                    gl.drawArrays(gl.POINTS, 0, particleCount);
-                    gl.bindVertexArray(null);
+                    ctx.save();
+                    for (let i = 0; i < particleCount; i++) {
+                        const px = partArr[i * 7 + 0];
+                        const py = partArr[i * 7 + 1];
+                        const sz = partArr[i * 7 + 2];
+                        const pr = Math.round(partArr[i * 7 + 3] * 255);
+                        const pg = Math.round(partArr[i * 7 + 4] * 255);
+                        const pb = Math.round(partArr[i * 7 + 5] * 255);
+                        const pa = partArr[i * 7 + 6];
+                        ctx.globalAlpha = pa;
+                        ctx.fillStyle =
+                            "rgb(" + pr + "," + pg + "," + pb + ")";
+                        ctx.beginPath();
+                        ctx.arc(px, py, sz, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
                 }
             }
 
@@ -2188,27 +1989,11 @@
                 .getElementById("sound-btn")
                 .addEventListener("click", toggleSound);
 
-            boardCanvas.addEventListener("webglcontextlost", (e) => {
-                e.preventDefault();
-                if (animFrame) {
-                    cancelAnimationFrame(animFrame);
-                    animFrame = null;
-                }
-                animPhase = "idle";
-                particleCount = 0;
-            });
-            boardCanvas.addEventListener("webglcontextrestored", () => {
-                initWebGL();
-                render();
-                ensureAnimLoop();
-            });
-
             // ============ INIT ============
             loadLang();
             loadSoundPref();
             updateSoundBtn();
             applyLang();
-            initWebGL();
             createBoard();
             initialBoardStr = boardToString(board);
             updateUI();
@@ -2216,7 +2001,8 @@
             renderOverlayLeaderboard();
             animFrame = requestAnimationFrame(animLoop);
         </script>
-    <script>
+    
+<script>
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){})}
 </script>
 </body>
