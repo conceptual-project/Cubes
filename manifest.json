@@ -1,7 +1,7 @@
 {
-  "name": "Кубики — Cubes",
-  "short_name": "Cubes",
-  "description": "Удаляй группы одинаковых кубиков и очищай поле! / Remove groups of same-colored cubes and clear the board!",
+  "name": "CUBES",
+  "short_name": "CUBES",
+  "description": "Remove groups of same-colored cubes and clear the board!",
   "start_url": ".",
   "display": "standalone",
   "orientation": "portrait",
