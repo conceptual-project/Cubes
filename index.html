@@ -11,10 +11,6 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
         <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0, user-scalable=no"
-        />
-        <meta
             name="description"
             content="Cubes puzzle game - match and remove groups of same-colored cubes"
         />
@@ -86,78 +82,27 @@
             .overlay-btn:hover { transform: scale(1.05); }
             .overlay-btn.small { padding: 10px 16px; font-size: 0.85rem; width: 100%; }
 
-            .overlay-lb {
-                width: 85%;
-                max-width: 360px;
-                margin-bottom: 16px;
-            }
-            .overlay-lb .olb-title {
-                font-size: 0.7rem;
-                color: #c8a8e8;
-                text-transform: uppercase;
-                letter-spacing: 0.15em;
-                text-align: center;
-                margin-bottom: 8px;
-                font-family: 'Inter', sans-serif;
-            }
-            .overlay-lb .olb-row {
-                display: flex;
-                gap: 8px;
-                align-items: center;
-                margin-bottom: 3px;
-                font-size: 0.75rem;
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-family: 'Inter', sans-serif;
-            }
-            .overlay-lb .olb-row:nth-child(odd) {
-                background: rgba(255, 255, 255, 0.03);
-            }
-            .overlay-lb .olb-row.clickable {
-                cursor: pointer;
-                transition:
-                    background 0.15s,
-                    transform 0.1s;
-            }
-            .overlay-lb .olb-row.clickable:hover {
-                background: rgba(200, 168, 232, 0.12) !important;
-                transform: translateX(2px);
-            }
-            .olb-replay {
-                color: #c8a8e8;
-                font-size: 0.65rem;
-                opacity: 0.5;
-                transition: opacity 0.15s;
-                margin-left: 2px;
-            }
-            .overlay-lb .olb-row.clickable:hover .olb-replay {
-                opacity: 1;
-            }
-            .overlay-lb .olb-rank {
-                min-width: 18px;
-                text-align: right;
-                font-variant-numeric: tabular-nums;
-            }
-            .overlay-lb .olb-score {
-                font-weight: bold;
-                margin-left: auto;
-                font-variant-numeric: tabular-nums;
-            }
-            .overlay-lb .olb-date {
-                color: #555;
-                font-size: 0.55rem;
-            }
-            .overlay-lb .olb-empty {
-                color: #555;
-                font-size: 0.65rem;
-                text-align: center;
-                padding: 10px 0;
-                font-family: 'Inter', sans-serif;
-            }
+            .lb { width: 85%; max-width: 360px; max-height: 220px; overflow-y: auto; margin-bottom: 12px; scrollbar-width: thin; scrollbar-color: rgba(200,168,232,.3) transparent; }
+            .lbTitle { font-size: 0.7rem; color: #c8a8e8; text-transform: uppercase; letter-spacing: 0.15em; text-align: center; margin-bottom: 8px; font-family: 'Inter', sans-serif; }
+            .lbEmpty { color: #555; font-size: 0.65rem; text-align: center; padding: 10px 0; font-family: 'Inter', sans-serif; }
+            .lbRow { display: grid; grid-template-columns: 18px 7px 52px 1fr auto; gap: 8px; align-items: center; margin-bottom: 3px; font-size: 0.75rem; padding: 2px 6px; border-radius: 3px; font-family: 'Inter', sans-serif; }
+            .lbRow.even { background: rgba(255, 255, 255, 0.03); }
+            .lbRow.clickable { cursor: pointer; transition: background 0.15s, transform 0.1s; }
+            .lbRow.clickable:hover { background: rgba(200, 168, 232, 0.12) !important; transform: translateX(2px); }
+            .lbRow.hi { color: #fff; font-weight: bold; }
+            .lbRow:not(.hi) { color: #ccc; }
+            .lbRow .rank { text-align: right; font-variant-numeric: tabular-nums; }
+            .lbRow .sc { font-weight: bold; font-variant-numeric: tabular-nums; }
+            .lbRow .dt { color: #555; font-size: 0.55rem; text-align: right; }
+            .lbDot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+            .lbDot.norm { background: rgba(255, 255, 255, 0.35); }
+            .lbDot.vic { background: #fce4a8; box-shadow: 0 0 6px rgba(252, 228, 168, 0.5); cursor: help; position: relative; }
+            .lbDot.vic:hover::after { content: attr(data-tip); position: absolute; bottom: 140%; left: 50%; transform: translateX(-50%); background: rgba(20, 20, 30, 0.95); border: 1px solid rgba(252, 228, 168, 0.3); border-radius: 4px; padding: 4px 8px; font-size: 0.6rem; color: #fce4a8; white-space: nowrap; pointer-events: none; z-index: 99; }
+            .lbReplay { color: #c8a8e8; font-size: 0.65rem; opacity: 0.5; transition: opacity 0.15s; margin-left: 2px; }
+            .lbRow.clickable:hover .lbReplay { opacity: 1; }
 
             .right-panel { display: flex; flex-direction: column; gap: 10px; min-width: 150px; }
             .stat-box { border-radius: 6px; padding: 10px; background: rgba(20, 20, 30, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); }
-            .stat-box canvas { border: none; }
             .stat-box .label { text-transform: uppercase; font-size: 0.65rem; color: #888; letter-spacing: 0.15em; margin-bottom: 2px; }
             .stat-box .value { font-weight: bold; font-size: 1.1rem; color: #fff; }
             .stat-box .value.gold { color: #fce4a8; }
@@ -241,10 +186,7 @@
                     <canvas id="board"></canvas>
                     <div id="bonus-popup"></div>
                     <div id="start-overlay" class="overlay">
-                        <div class="overlay-lb">
-                            <div class="olb-title">Топ-10</div>
-                            <div id="overlay-lb-content"></div>
-                        </div>
+                        <div class="lb" id="startLB"></div>
                     </div>
                     <div id="gameover-overlay" class="overlay hidden">
                         <h2 style="color: #f0a8b8">КОНЕЦ ИГРЫ</h2>
@@ -280,7 +222,7 @@
                     <div class="stats-box" id="stats-box">
                         <div id="stats-content"></div>
                     </div>
-                    <button class="overlay-btn small" id="play-btn" style="display:none">ИГРАТЬ</button>
+                    <button class="overlay-btn small" id="play-btn" style="display:block">ИГРАТЬ</button>
                 </div>
             </div>
             <div class="frame-label">conceptual<span class="bold">project</span></div>
@@ -343,7 +285,7 @@
             ];
 
             const LB_KEY = "cubes_leaderboard";
-            const LB_MAX = 10,
+            const LB_MAX = 5,
                 UNDO_MAX = 20,
                 REMOVE_DURATION = 350,
                 FALL_SPEED = 800,
@@ -520,11 +462,12 @@
             const T = {
                 title: { ru: "CUBES", en: "CUBES" },
                 play: { ru: "ИГРАТЬ", en: "PLAY" },
+                replay: { ru: "ПЕРЕИГРАТЬ", en: "REPLAY" },
                 gameOver: { ru: "КОНЕЦ ИГРЫ", en: "GAME OVER" },
                 score: { ru: "Счёт", en: "Score" },
                 groupVal: { ru: "Выделено", en: "Selected" },
                 cubesLeft: { ru: "Осталось", en: "Remaining" },
-                leaderboard: { ru: "Топ-10", en: "Top-10" },
+                leaderboard: { ru: "Топ-5", en: "Top-5" },
                 noRecords: { ru: "Пока нет рекордов", en: "No records yet" },
                 scoreLabel: { ru: "Счёт: ", en: "Score: " },
                 cleared: { ru: "Очистка! +", en: "CLEARED! +" },
@@ -562,7 +505,7 @@
                 document.title = "CUBES";
                 buildTitle();
                 document.getElementById("play-btn").textContent =
-                    t("play");
+                    started ? t("replay") : t("play");
 
                 document.querySelector("#gameover-overlay h2").textContent =
                     t("gameOver");
@@ -572,10 +515,6 @@
                 if (labels[0]) labels[0].textContent = t("score");
                 if (labels[1]) labels[1].textContent = t("groupVal");
                 if (labels[2]) labels[2].textContent = t("cubesLeft");
-                const olbTitle = document.querySelector(
-                    ".overlay-lb .olb-title",
-                );
-                if (olbTitle) olbTitle.textContent = t("leaderboard");
 
                 document.getElementById("lang-toggle").textContent =
                     lang === "ru" ? "EN" : "RU";
@@ -605,7 +544,6 @@
             const groupVal = document.getElementById("group-val");
             const cubesLeftEl = document.getElementById("cubes-left");
             const statsContent = document.getElementById("stats-content");
-            const playSideBtn = document.getElementById("play-btn");
 
             // ============ CANVAS 2D SETUP ============
             boardCanvas.width = BW;
@@ -909,7 +847,7 @@
                 gameOver = false;
                 gameOverScoreSaved = false;
                 gameoverOverlay.classList.add("hidden");
-                document.getElementById("play-btn").style.display = "none";
+                document.getElementById("play-btn").textContent = t("replay");
                 updateUI();
                 render();
                 ensureAnimLoop();
@@ -1347,7 +1285,7 @@
 
             function showGameOver(info) {
                 gameoverOverlay.classList.remove("hidden");
-                document.getElementById("play-btn").style.display = "block";
+                document.getElementById("play-btn").textContent = t("replay");
                 if (!info) info = countCubes(board);
                 finalBonusEl.style.color = "#fce4a8";
                 if (info.total === 0) {
@@ -1380,7 +1318,8 @@
                     finalBonusEl.style.display = "none";
                 }
                 if (!gameOverScoreSaved) {
-                    saveScore(score);
+                    const isPerfectClear = info && info.total === 0;
+                    saveScore(score, isPerfectClear);
                     gameOverScoreSaved = true;
                 }
             }
@@ -1392,7 +1331,7 @@
                 } catch {}
                 return [];
             }
-            function saveScore(sc) {
+            function saveScore(sc, isPerfectClear) {
                 if (sc <= 0) return;
                 const lb = loadLeaderboard(),
                     dateStr = new Date().toLocaleDateString(getLocale(), {
@@ -1408,11 +1347,13 @@
                         lb[replayIdx].date = dateStr;
                     }
                 } else {
-                    lb.push({
+                    const entry = {
                         score: sc,
                         date: dateStr,
                         board: initialBoardStr,
-                    });
+                    };
+                    if (isPerfectClear) entry.perfectClear = true;
+                    lb.push(entry);
                 }
                 lb.sort((a, b) => b.score - a.score);
                 if (lb.length > LB_MAX) lb.length = LB_MAX;
@@ -1423,30 +1364,26 @@
             }
 
             function renderOverlayLeaderboard() {
-                const el = document.getElementById("overlay-lb-content");
+                const el = document.getElementById("startLB");
                 if (!el) return;
                 const lb = loadLeaderboard();
+                let html = '<div class="lbTitle">' + t("leaderboard") + '</div>';
                 if (lb.length === 0) {
-                    el.innerHTML = `<div class="olb-empty">${t("noRecords")}</div>`;
-                    return;
-                }
-                let html = "";
-                for (let i = 0; i < Math.min(lb.length, LB_MAX); i++) {
-                    const e = lb[i],
-                        rankColor =
-                            i === 0
-                                ? "#c8a8e8"
-                                : i === 1
-                                  ? "#d0d0d0"
-                                  : i === 2
-                                    ? "#d4a574"
-                                    : "#888",
-                        hasBoard = !!e.board,
-                        cls = hasBoard ? "clickable" : "";
-                    html += `<div class="olb-row ${cls}" data-replay="${hasBoard ? i : ""}"><span class="olb-rank" style="color:${rankColor}">${i + 1}</span><span class="olb-score">${e.score.toLocaleString(getLocale())}</span><span class="olb-date">${e.date || ""}</span>${hasBoard ? '<span class="olb-replay">↻</span>' : ""}</div>`;
+                    html += '<div class="lbEmpty">' + t("noRecords") + '</div>';
+                } else {
+                    for (let i = 0; i < Math.min(lb.length, LB_MAX); i++) {
+                        const e = lb[i],
+                            rankColor = i === 0 ? "#c8a8e8" : i === 1 ? "#d0d0d0" : i === 2 ? "#d4a574" : "#888",
+                            hasBoard = !!e.board,
+                            isVic = !!e.perfectClear,
+                            cls = (hasBoard ? " clickable" : "") + (i % 2 === 0 ? " even" : "");
+                        const dotCls = isVic ? "lbDot vic" : "lbDot norm";
+                        const dotTip = isVic ? ' data-tip="' + t("perfectClear").replace("+", "").trim() + '"' : "";
+                        html += '<div class="lbRow' + cls + '" data-replay="' + (hasBoard ? i : "") + '"><span class="rank" style="color:' + rankColor + '">' + (i + 1) + '</span><span class="' + dotCls + '"' + dotTip + '></span><span class="sc">' + e.score.toLocaleString(getLocale()) + '</span><span class="dt">' + (e.date || "") + '</span>' + (hasBoard ? '<span class="lbReplay">↻</span>' : '') + '</div>';
+                    }
                 }
                 el.innerHTML = html;
-                el.querySelectorAll(".olb-row.clickable").forEach((row) => {
+                el.querySelectorAll(".lbRow.clickable").forEach((row) => {
                     row.addEventListener("click", () => {
                         const idx = parseInt(row.getAttribute("data-replay"));
                         if (!isNaN(idx)) startReplay(idx);
@@ -1662,7 +1599,7 @@
                 compactAnimMap.clear();
                 startOverlay.classList.add("hidden");
                 gameoverOverlay.classList.add("hidden");
-                document.getElementById("play-btn").style.display = "none";
+                document.getElementById("play-btn").textContent = t("replay");
             }
             function startNewGame() {
                 if (started && !gameOver && score > 0) saveScore(score);
@@ -1718,7 +1655,7 @@
             initialBoardStr = boardToString(board);
             updateUI();
             render();
-            document.getElementById("play-btn").style.display = "block";
+            document.getElementById("play-btn").style.display = "block"; document.getElementById("play-btn").textContent = t("play");
             renderOverlayLeaderboard();
             animFrame = requestAnimationFrame(animLoop);
         </script>
