@@ -1,6 +1,6 @@
 {
-  "name": "CUBES",
-  "short_name": "CUBES",
+  "name": "Cubes",
+  "short_name": "Cubes",
   "description": "Remove groups of same-colored cubes and clear the board!",
   "start_url": ".",
   "display": "standalone",
