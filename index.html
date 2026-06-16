@@ -2,31 +2,22 @@
 <html lang="ru">
     <head>
         <meta charset="UTF-8" />
-        <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-        />
-        <meta name="theme-color" content="#0d0d0d" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta
-            name="apple-mobile-web-app-status-bar-style"
-            content="black-translucent"
-        />
-        <meta name="apple-mobile-web-app-title" content="Cubes" />
-        <link rel="manifest" href="manifest.json" />
-        <link rel="apple-touch-icon" href="icon-192.png" />
-        <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d0d0d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cubes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
         <meta
             name="description"
             content="Cubes puzzle game - match and remove groups of same-colored cubes"
         />
-        <title>Cubes</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap"
-            rel="stylesheet"
-        />
+        <title>CUBES</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
         <style>
             * {
                 margin: 0;
@@ -36,7 +27,7 @@
             body {
                 background: #0d0d0d;
                 color: #fff;
-                font-family: "Inter", sans-serif;
+                font-family: 'Inter', sans-serif;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -47,136 +38,18 @@
                 -webkit-user-select: none;
                 overflow: hidden;
             }
-            .top-bar {
-                display: flex;
-                align-items: flex-end;
-                justify-content: center;
-                width: 100%;
-                position: relative;
-            }
-            .title-row {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 5px;
-            }
-            .title-cube {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                width: 44px;
-                height: 44px;
-                font-family: "Inter", sans-serif;
-                font-weight: 900;
-                font-size: 22px;
-                color: #fff;
-                border-radius: 5px;
-                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
-                position: relative;
-                user-select: none;
-                outline: 1px solid rgba(255, 255, 255, 0.25);
-                outline-offset: -2px;
-            }
-            .title-cube::before {
-                content: "";
-                position: absolute;
-                top: 2px;
-                left: 2px;
-                right: 2px;
-                height: 36%;
-                background: linear-gradient(
-                    180deg,
-                    rgba(255, 255, 255, 0.45) 0%,
-                    rgba(255, 255, 255, 0) 100%
-                );
-                border-radius: 3px 3px 0 0;
-                pointer-events: none;
-            }
-            .title-cube::after {
-                content: "";
-                position: absolute;
-                bottom: 2px;
-                left: 2px;
-                right: 2px;
-                height: 33%;
-                background: linear-gradient(
-                    0deg,
-                    rgba(0, 0, 0, 0.2) 0%,
-                    transparent 100%
-                );
-                border-radius: 0 0 3px 3px;
-                pointer-events: none;
-            }
-            .game-frame {
-                position: relative;
-                border: 2px solid #555;
-                border-radius: 16px;
-                padding: 16px 20px 20px;
-                background: rgba(255, 255, 255, 0.03);
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 32px;
-                flex-shrink: 0;
-            }
-            .game-frame::after {
-                content: "";
-                position: absolute;
-                bottom: -2px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 130px;
-                height: 4px;
-                background: #0d0d0d;
-                z-index: 1;
-            }
-            .frame-label {
-                position: absolute;
-                bottom: -10px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: #0d0d0d;
-                padding: 0 5px;
-                font-family: "Inter", sans-serif;
-                font-size: 12px;
-                letter-spacing: 0.5px;
-                color: #555;
-                z-index: 2;
-                white-space: nowrap;
-            }
-            .frame-label .bold {
-                font-weight: 700;
-                color: #777;
-            }
-            .main-row {
-                display: flex;
-                gap: 24px;
-                align-items: flex-start;
-                flex-shrink: 0;
-            }
-            .board-wrap {
-                position: relative;
-                border-radius: 6px;
-                padding: 4px;
-                background: rgba(20, 20, 30, 0.75);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                flex-shrink: 0;
-                width: 570px;
-                height: 430px;
-            }
-            .board-wrap canvas {
-                display: block;
-                border-radius: 4px;
-                cursor: pointer;
-                border: none;
-                touch-action: none;
-                width: 560px;
-                height: 420px;
-                min-width: 560px;
-                min-height: 420px;
-                max-width: 560px;
-                max-height: 420px;
-            }
+            .top-bar { display: flex; align-items: flex-end; justify-content: center; width: 100%; position: relative; }
+            .title-row { display: flex; align-items: center; justify-content: center; gap: 5px; }
+            .title-cube { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; font-family: 'Inter', sans-serif; font-weight: 900; font-size: 22px; color: #fff; border-radius: 5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.4); position: relative; user-select: none; outline: 1px solid rgba(255,255,255,0.25); outline-offset: -2px; }
+            .title-cube::before { content: ''; position: absolute; top: 2px; left: 2px; right: 2px; height: 36%; background: linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 100%); border-radius: 3px 3px 0 0; pointer-events: none; }
+            .title-cube::after { content: ''; position: absolute; bottom: 2px; left: 2px; right: 2px; height: 33%; background: linear-gradient(0deg, rgba(0,0,0,0.2) 0%, transparent 100%); border-radius: 0 0 3px 3px; pointer-events: none; }
+            .game-frame { position: relative; border: 2px solid #555; border-radius: 16px; padding: 16px 20px 20px; background: rgba(255,255,255,0.03); display: flex; flex-direction: column; align-items: center; gap: 32px; }
+            .game-frame::after { content: ''; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); width: 130px; height: 4px; background: #0d0d0d; z-index: 1; }
+            .frame-label { position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); background: #0d0d0d; padding: 0 5px; font-family: 'Inter', sans-serif; font-size: 12px; letter-spacing: 0.5px; color: #555; z-index: 2; white-space: nowrap; }
+            .frame-label .bold { font-weight: 700; color: #777; }
+            .main-row { display: flex; gap: 24px; align-items: flex-start; }
+            .board-wrap { position: relative; border-radius: 6px; padding: 4px; background: rgba(20, 20, 30, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); }
+            .board-wrap canvas { display: block; border-radius: 4px; cursor: pointer; border: none; touch-action: none; }
             .overlay {
                 position: absolute;
                 inset: 0;
@@ -194,189 +67,46 @@
                 display: none;
             }
             .overlay h2 {
-                font-family: "Inter", sans-serif;
+                font-family: 'Inter', sans-serif;
                 font-weight: 900;
                 font-size: 1.2rem;
                 margin-bottom: 8px;
             }
             .overlay .score-text {
-                font-family: "Inter", sans-serif;
+                font-family: 'Inter', sans-serif;
                 font-size: 1.1rem;
                 margin-bottom: 6px;
                 color: #ccc;
             }
-            .overlay-btn {
-                padding: 12px 32px;
-                border: none;
-                font-weight: 900;
-                cursor: pointer;
-                border-radius: 6px;
-                background: linear-gradient(
-                    180deg,
-                    #d4f4e0 0%,
-                    #b8e8c8 35%,
-                    #90d0a8 70%,
-                    #70b088 100%
-                );
-                color: #fff;
-                font-family: "Inter", sans-serif;
-                font-size: 1.1rem;
-                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-                outline: 1px solid rgba(255, 255, 255, 0.25);
-                outline-offset: -2px;
-                box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
-                transition: transform 0.15s;
-            }
-            .overlay-btn:hover {
-                transform: scale(1.05);
-            }
-            .overlay-btn.small {
-                padding: 10px 16px;
-                font-size: 0.85rem;
-                width: 100%;
-            }
+            .overlay-btn { padding: 12px 32px; border: none; font-weight: 900; cursor: pointer; border-radius: 6px; background: linear-gradient(180deg, #d4f4e0 0%, #b8e8c8 35%, #90d0a8 70%, #70b088 100%); color: #fff; font-family: 'Inter', sans-serif; font-size: 1.1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); outline: 1px solid rgba(255,255,255,0.25); outline-offset: -2px; box-shadow: 0 3px 6px rgba(0,0,0,0.3); transition: transform 0.15s; }
+            .overlay-btn:hover { transform: scale(1.05); }
+            .overlay-btn.small { padding: 10px 16px; font-size: 0.85rem; width: 100%; }
 
-            .lb {
-                width: 85%;
-                max-width: 280px;
-                overflow: hidden;
-                margin-bottom: 12px;
-            }
-            .lbTitle {
-                font-size: 0.7rem;
-                color: #c8a8e8;
-                text-transform: uppercase;
-                letter-spacing: 0.15em;
-                text-align: center;
-                margin-bottom: 8px;
-                font-family: "Inter", sans-serif;
-            }
-            .lbEmpty {
-                color: #555;
-                font-size: 0.65rem;
-                text-align: center;
-                padding: 10px 0;
-                font-family: "Inter", sans-serif;
-            }
-            .lbRow {
-                display: grid;
-                grid-template-columns: 18px 7px 52px 1fr auto;
-                gap: 8px;
-                align-items: center;
-                margin-bottom: 3px;
-                font-size: 0.75rem;
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-family: "Inter", sans-serif;
-            }
-            .lbRow.even {
-                background: rgba(255, 255, 255, 0.03);
-            }
-            .lbRow.clickable {
-                cursor: pointer;
-                transition:
-                    background 0.15s,
-                    transform 0.1s;
-            }
-            .lbRow.clickable:hover {
-                background: rgba(200, 168, 232, 0.12) !important;
-                transform: translateX(2px);
-            }
-            .lbRow.hi {
-                color: #fff;
-                font-weight: bold;
-            }
-            .lbRow:not(.hi) {
-                color: #ccc;
-            }
-            .lbRow .rank {
-                text-align: right;
-                font-variant-numeric: tabular-nums;
-            }
-            .lbRow .sc {
-                font-weight: bold;
-                font-variant-numeric: tabular-nums;
-            }
-            .lbRow .dt {
-                color: #555;
-                font-size: 0.55rem;
-                text-align: right;
-            }
-            .lbDot {
-                display: inline-block;
-                width: 7px;
-                height: 7px;
-                border-radius: 50%;
-                flex-shrink: 0;
-            }
-            .lbDot.norm {
-                background: rgba(255, 255, 255, 0.35);
-            }
-            .lbDot.vic {
-                background: #fce4a8;
-                box-shadow: 0 0 6px rgba(252, 228, 168, 0.5);
-                cursor: help;
-                position: relative;
-            }
-            .lbDot.vic:hover::after {
-                content: attr(data-tip);
-                position: absolute;
-                bottom: 140%;
-                left: 50%;
-                transform: translateX(-50%);
-                background: rgba(20, 20, 30, 0.95);
-                border: 1px solid rgba(252, 228, 168, 0.3);
-                border-radius: 4px;
-                padding: 4px 8px;
-                font-size: 0.6rem;
-                color: #fce4a8;
-                white-space: nowrap;
-                pointer-events: none;
-                z-index: 99;
-            }
-            .lbReplay {
-                color: #c8a8e8;
-                font-size: 0.65rem;
-                opacity: 0.5;
-                transition: opacity 0.15s;
-                margin-left: 2px;
-            }
-            .lbRow.clickable:hover .lbReplay {
-                opacity: 1;
-            }
+            .lb { width: 85%; max-width: 360px; max-height: 220px; overflow-y: auto; margin-bottom: 12px; scrollbar-width: thin; scrollbar-color: rgba(200,168,232,.3) transparent; }
+            .lbTitle { font-size: 0.7rem; color: #c8a8e8; text-transform: uppercase; letter-spacing: 0.15em; text-align: center; margin-bottom: 8px; font-family: 'Inter', sans-serif; }
+            .lbEmpty { color: #555; font-size: 0.65rem; text-align: center; padding: 10px 0; font-family: 'Inter', sans-serif; }
+            .lbRow { display: flex; gap: 8px; align-items: center; margin-bottom: 3px; font-size: 0.75rem; padding: 2px 6px; border-radius: 3px; font-family: 'Inter', sans-serif; }
+            .lbRow.even { background: rgba(255, 255, 255, 0.03); }
+            .lbRow.clickable { cursor: pointer; transition: background 0.15s, transform 0.1s; }
+            .lbRow.clickable:hover { background: rgba(200, 168, 232, 0.12) !important; transform: translateX(2px); }
+            .lbRow.hi { color: #fff; font-weight: bold; }
+            .lbRow:not(.hi) { color: #ccc; }
+            .lbRow .rank { min-width: 18px; text-align: right; font-variant-numeric: tabular-nums; }
+            .lbRow .sc { font-weight: bold; font-variant-numeric: tabular-nums; }
+            .lbRow .dt { color: #555; font-size: 0.55rem; margin-left: auto; }
+            .lbDot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+            .lbDot.norm { background: rgba(255, 255, 255, 0.35); }
+            .lbDot.vic { background: #fce4a8; box-shadow: 0 0 6px rgba(252, 228, 168, 0.5); cursor: help; position: relative; }
+            .lbDot.vic:hover::after { content: attr(data-tip); position: absolute; bottom: 140%; left: 50%; transform: translateX(-50%); background: rgba(20, 20, 30, 0.95); border: 1px solid rgba(252, 228, 168, 0.3); border-radius: 4px; padding: 4px 8px; font-size: 0.6rem; color: #fce4a8; white-space: nowrap; pointer-events: none; z-index: 99; }
+            .lbReplay { color: #c8a8e8; font-size: 0.65rem; opacity: 0.5; transition: opacity 0.15s; margin-left: 2px; }
+            .lbRow.clickable:hover .lbReplay { opacity: 1; }
 
-            .right-panel {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-                min-width: 150px;
-                width: 150px;
-                flex-shrink: 0;
-            }
-            .stat-box {
-                border-radius: 6px;
-                padding: 10px;
-                background: rgba(20, 20, 30, 0.75);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-            }
-            .stat-box .label {
-                text-transform: uppercase;
-                font-size: 0.65rem;
-                color: #888;
-                letter-spacing: 0.15em;
-                margin-bottom: 2px;
-            }
-            .stat-box .value {
-                font-weight: bold;
-                font-size: 1.1rem;
-                color: #fff;
-            }
-            .stat-box .value.gold {
-                color: #fce4a8;
-            }
-            .stat-box .value.green {
-                color: #a8e8c8;
-            }
+            .right-panel { display: flex; flex-direction: column; gap: 10px; min-width: 150px; }
+            .stat-box { border-radius: 6px; padding: 10px; background: rgba(20, 20, 30, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); }
+            .stat-box .label { text-transform: uppercase; font-size: 0.65rem; color: #888; letter-spacing: 0.15em; margin-bottom: 2px; }
+            .stat-box .value { font-weight: bold; font-size: 1.1rem; color: #fff; }
+            .stat-box .value.gold { color: #fce4a8; }
+            .stat-box .value.green { color: #a8e8c8; }
 
             .stats-box {
                 background: rgba(20, 20, 30, 0.75);
@@ -406,41 +136,11 @@
                 font-variant-numeric: tabular-nums;
             }
 
-            .btn-row {
-                display: flex;
-                gap: 6px;
-            }
-            .tbtn {
-                flex: 1;
-                background: rgba(20, 20, 30, 0.75);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 6px;
-                color: #888;
-                font-family: "Inter", sans-serif;
-                font-size: 0.6rem;
-                font-weight: bold;
-                letter-spacing: 0.08em;
-                padding: 6px 0;
-                cursor: pointer;
-                transition:
-                    background 0.15s,
-                    color 0.15s;
-                text-align: center;
-            }
-            .tbtn:hover {
-                background: rgba(255, 255, 255, 0.1);
-                color: #ccc;
-            }
-            .tbtn.sound-on {
-                background: rgba(200, 168, 232, 0.08);
-                border-color: rgba(200, 168, 232, 0.2);
-                color: #c8a8e8;
-            }
-            .tbtn.sound-off {
-                background: rgba(20, 20, 30, 0.75);
-                border-color: rgba(255, 255, 255, 0.08);
-                color: #666;
-            }
+            .btn-row { display: flex; gap: 6px; }
+            .tbtn { flex: 1; background: rgba(20, 20, 30, 0.75); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; color: #888; font-family: 'Inter', sans-serif; font-size: 0.6rem; font-weight: bold; letter-spacing: 0.08em; padding: 6px 0; cursor: pointer; transition: background 0.15s, color 0.15s; text-align: center; }
+            .tbtn:hover { background: rgba(255, 255, 255, 0.1); color: #ccc; }
+            .tbtn.sound-on { background: rgba(200, 168, 232, 0.08); border-color: rgba(200, 168, 232, 0.2); color: #c8a8e8; }
+            .tbtn.sound-off { background: rgba(20, 20, 30, 0.75); border-color: rgba(255, 255, 255, 0.08); color: #666; }
 
             #bonus-popup {
                 position: absolute;
@@ -451,7 +151,7 @@
                 pointer-events: none;
                 font-size: 1.5rem;
                 font-weight: bold;
-                font-family: "Inter", sans-serif;
+                font-family: 'Inter', sans-serif;
                 color: #fff;
                 text-shadow:
                     0 0 3px rgba(0, 0, 0, 1),
@@ -522,18 +222,10 @@
                     <div class="stats-box" id="stats-box">
                         <div id="stats-content"></div>
                     </div>
-                    <button
-                        class="overlay-btn small"
-                        id="play-btn"
-                        style="display: block"
-                    >
-                        ИГРАТЬ
-                    </button>
+                    <button class="overlay-btn small" id="play-btn" style="display:none">ИГРАТЬ</button>
                 </div>
             </div>
-            <div class="frame-label">
-                conceptual<span class="bold">project</span>
-            </div>
+            <div class="frame-label">conceptual<span class="bold">project</span></div>
         </div>
 
         <script>
@@ -543,7 +235,7 @@
                 CELL = 28;
             const BW = COLS * CELL,
                 BH = ROWS * CELL;
-            const NUM_COLORS = 4;
+            const NUM_COLORS = 5;
 
             const COLORS = [
                 {
@@ -574,6 +266,13 @@
                     dark: "#70b088",
                     glow: [184, 232, 200],
                 },
+                {
+                    base: "#f0b8c0",
+                    light: "#f8d4d8",
+                    mid: "#e09098",
+                    dark: "#c87078",
+                    glow: [240, 184, 192],
+                },
             ];
 
             const TITLE_COLORS = [
@@ -581,12 +280,12 @@
                 COLORS[1],
                 COLORS[2],
                 COLORS[3],
+                COLORS[4],
                 COLORS[0],
-                COLORS[1],
             ];
 
             const LB_KEY = "cubes_leaderboard";
-            const LB_MAX = 5,
+            const LB_MAX = 10,
                 UNDO_MAX = 20,
                 REMOVE_DURATION = 350,
                 FALL_SPEED = 800,
@@ -612,9 +311,9 @@
                     soundEnabled = false;
                 }
                 if (audioCtx) {
-                    audioCtx.onstatechange = function () {
-                        if (audioCtx && audioCtx.state === "interrupted")
-                            audioCtx.resume().catch(function () {});
+                    audioCtx.onstatechange = function() {
+                        if (audioCtx && audioCtx.state === 'interrupted')
+                            audioCtx.resume().catch(function(){});
                     };
                 }
             }
@@ -624,12 +323,9 @@
                     createAudioCtx();
                 }
                 if (audioCtx) {
-                    if (
-                        audioCtx.state === "suspended" ||
-                        audioCtx.state === "interrupted"
-                    ) {
+                    if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') {
                         audioCtx.resume().catch(() => {});
-                    } else if (audioCtx.state === "closed") {
+                    } else if (audioCtx.state === 'closed') {
                         audioCtx = null;
                         createAudioCtx();
                     }
@@ -662,28 +358,20 @@
             function updateSoundBtn() {
                 if (soundBtnEl) {
                     if (soundEnabled) {
-                        soundBtnEl.className = "tbtn sound-on";
-                        soundBtnEl.innerHTML =
-                            '<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>';
+                        soundBtnEl.className = 'tbtn sound-on';
+                        soundBtnEl.innerHTML = '<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>';
                     } else {
-                        soundBtnEl.className = "tbtn sound-off";
-                        soundBtnEl.innerHTML =
-                            '<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg></span>';
+                        soundBtnEl.className = 'tbtn sound-off';
+                        soundBtnEl.innerHTML = '<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg></span>';
                     }
                 }
             }
 
             function playTone(freq, duration, volume, type) {
                 if (!soundEnabled) return;
-                if (!audioCtx || audioCtx.state === "closed") {
-                    audioCtx = null;
-                    createAudioCtx();
-                }
+                if (!audioCtx || audioCtx.state === 'closed') { audioCtx = null; createAudioCtx(); }
                 if (!audioCtx) return;
-                if (
-                    audioCtx.state === "suspended" ||
-                    audioCtx.state === "interrupted"
-                ) {
+                if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') {
                     audioCtx.resume().catch(() => {});
                 }
                 try {
@@ -701,19 +389,14 @@
                     gain.connect(audioCtx.destination);
                     osc.start(audioCtx.currentTime);
                     osc.stop(audioCtx.currentTime + duration);
-                } catch (e) {
-                    audioCtx = null;
-                    createAudioCtx();
-                }
+                } catch (e) { audioCtx = null; createAudioCtx(); }
             }
 
             // Resume audio after system wake-up or tab focus
-            document.addEventListener("visibilitychange", function () {
+            document.addEventListener('visibilitychange', function() {
                 if (!document.hidden) initAudio();
             });
-            window.addEventListener("pageshow", function () {
-                initAudio();
-            });
+            window.addEventListener('pageshow', function() { initAudio(); });
 
             function sfxRemove(groupSize) {
                 const baseFreq = 440 + Math.min(groupSize, 20) * 20,
@@ -779,12 +462,11 @@
             const T = {
                 title: { ru: "CUBES", en: "CUBES" },
                 play: { ru: "ИГРАТЬ", en: "PLAY" },
-                replay: { ru: "ПЕРЕИГРАТЬ", en: "REPLAY" },
                 gameOver: { ru: "КОНЕЦ ИГРЫ", en: "GAME OVER" },
                 score: { ru: "Счёт", en: "Score" },
                 groupVal: { ru: "Выделено", en: "Selected" },
                 cubesLeft: { ru: "Осталось", en: "Remaining" },
-                leaderboard: { ru: "Топ-5", en: "Top-5" },
+                leaderboard: { ru: "Топ-10", en: "Top-10" },
                 noRecords: { ru: "Пока нет рекордов", en: "No records yet" },
                 scoreLabel: { ru: "Счёт: ", en: "Score: " },
                 cleared: { ru: "Очистка! +", en: "CLEARED! +" },
@@ -811,18 +493,8 @@
                     const cube = document.createElement("div");
                     cube.className = "title-cube";
                     cube.textContent = char;
-                    cube.style.background =
-                        "linear-gradient(180deg, " +
-                        co.light +
-                        " 0%, " +
-                        co.base +
-                        " 35%, " +
-                        co.mid +
-                        " 70%, " +
-                        co.dark +
-                        " 100%)";
-                    cube.style.boxShadow =
-                        "0 3px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2)";
+                    cube.style.background = "linear-gradient(180deg, " + co.light + " 0%, " + co.base + " 35%, " + co.mid + " 70%, " + co.dark + " 100%)";
+                    cube.style.boxShadow = "0 3px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2)";
                     titleRow.appendChild(cube);
                 }
             }
@@ -831,9 +503,8 @@
                 document.documentElement.lang = lang;
                 document.title = "CUBES";
                 buildTitle();
-                document.getElementById("play-btn").textContent = started
-                    ? t("replay")
-                    : t("play");
+                document.getElementById("play-btn").textContent =
+                    t("play");
 
                 document.querySelector("#gameover-overlay h2").textContent =
                     t("gameOver");
@@ -900,68 +571,37 @@
             }
             // Draw a cube-style cell (matching CUBEFALL/MATCH-3 style)
             function drawCube(ctx, px, py, ci, sz, sel, alpha) {
-                const co = COLORS[ci],
-                    r = 4;
-                ctx.save();
-                ctx.globalAlpha = alpha || 1;
+                const co = COLORS[ci], r = 4;
+                ctx.save(); ctx.globalAlpha = alpha || 1;
                 // Main gradient fill
                 const g = ctx.createLinearGradient(px, py, px, py + sz);
-                g.addColorStop(0, co.light);
-                g.addColorStop(0.35, co.base);
-                g.addColorStop(0.7, co.mid);
-                g.addColorStop(1, co.dark);
+                g.addColorStop(0, co.light); g.addColorStop(0.35, co.base);
+                g.addColorStop(0.7, co.mid); g.addColorStop(1, co.dark);
                 ctx.fillStyle = g;
-                roundRect(ctx, px + 0.5, py + 0.5, sz - 1, sz - 1, r);
-                ctx.fill();
+                roundRect(ctx, px + 0.5, py + 0.5, sz - 1, sz - 1, r); ctx.fill();
                 // Inner white border
-                ctx.strokeStyle = "rgba(255,255,255,0.25)";
-                ctx.lineWidth = 1;
-                roundRect(ctx, px + 1.5, py + 1.5, sz - 3, sz - 3, r - 0.5);
-                ctx.stroke();
+                ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 1;
+                roundRect(ctx, px + 1.5, py + 1.5, sz - 3, sz - 3, r - 0.5); ctx.stroke();
                 // Shine (top highlight)
                 const shineH = sz * 0.36;
                 ctx.globalAlpha = 0.45;
                 const sg = ctx.createLinearGradient(px, py, px, py + shineH);
-                sg.addColorStop(0, "rgba(255,255,255,0.45)");
-                sg.addColorStop(1, "rgba(255,255,255,0)");
+                sg.addColorStop(0, 'rgba(255,255,255,0.45)'); sg.addColorStop(1, 'rgba(255,255,255,0)');
                 ctx.fillStyle = sg;
-                roundRect(ctx, px + 2, py + 2, sz - 4, shineH, [
-                    r - 1,
-                    r - 1,
-                    0,
-                    0,
-                ]);
-                ctx.fill();
+                roundRect(ctx, px + 2, py + 2, sz - 4, shineH, [r - 1, r - 1, 0, 0]); ctx.fill();
                 // Shadow (bottom)
                 ctx.globalAlpha = 0.3;
-                const bg = ctx.createLinearGradient(
-                    px,
-                    py + sz * 0.67,
-                    px,
-                    py + sz,
-                );
-                bg.addColorStop(0, "rgba(0,0,0,0)");
-                bg.addColorStop(1, "rgba(0,0,0,0.2)");
+                const bg = ctx.createLinearGradient(px, py + sz * 0.67, px, py + sz);
+                bg.addColorStop(0, 'rgba(0,0,0,0)'); bg.addColorStop(1, 'rgba(0,0,0,0.2)');
                 ctx.fillStyle = bg;
-                roundRect(ctx, px + 2, py + sz * 0.67, sz - 4, sz * 0.31, [
-                    0,
-                    0,
-                    r - 1,
-                    r - 1,
-                ]);
-                ctx.fill();
+                roundRect(ctx, px + 2, py + sz * 0.67, sz - 4, sz * 0.31, [0, 0, r - 1, r - 1]); ctx.fill();
                 ctx.globalAlpha = 1;
                 // Selection highlight
                 if (sel) {
-                    ctx.globalAlpha = 0.4 * (alpha || 1);
-                    ctx.fillStyle = "#fff";
-                    roundRect(ctx, px + 0.5, py + 0.5, sz - 1, sz - 1, r);
-                    ctx.fill();
-                    ctx.globalAlpha = 0.9 * (alpha || 1);
-                    ctx.strokeStyle = "#fff";
-                    ctx.lineWidth = 2;
-                    roundRect(ctx, px + 1, py + 1, sz - 2, sz - 2, r);
-                    ctx.stroke();
+                    ctx.globalAlpha = 0.4 * (alpha || 1); ctx.fillStyle = '#fff';
+                    roundRect(ctx, px + 0.5, py + 0.5, sz - 1, sz - 1, r); ctx.fill();
+                    ctx.globalAlpha = 0.9 * (alpha || 1); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+                    roundRect(ctx, px + 1, py + 1, sz - 2, sz - 2, r); ctx.stroke();
                 }
                 ctx.restore();
             }
@@ -1206,7 +846,7 @@
                 gameOver = false;
                 gameOverScoreSaved = false;
                 gameoverOverlay.classList.add("hidden");
-                document.getElementById("play-btn").textContent = t("replay");
+                document.getElementById("play-btn").style.display = "none";
                 updateUI();
                 render();
                 ensureAnimLoop();
@@ -1500,7 +1140,8 @@
                         const pb = Math.round(partArr[i * 7 + 5] * 255);
                         const pa = partArr[i * 7 + 6];
                         ctx.globalAlpha = pa;
-                        ctx.fillStyle = "rgb(" + pr + "," + pg + "," + pb + ")";
+                        ctx.fillStyle =
+                            "rgb(" + pr + "," + pg + "," + pb + ")";
                         ctx.beginPath();
                         ctx.arc(px, py, sz, 0, Math.PI * 2);
                         ctx.fill();
@@ -1623,6 +1264,7 @@
             }
 
             let bonusTimers = [];
+            function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
             function showBonus(text) {
                 bonusTimers.forEach((id) => clearTimeout(id));
                 bonusTimers = [];
@@ -1643,7 +1285,7 @@
 
             function showGameOver(info) {
                 gameoverOverlay.classList.remove("hidden");
-                document.getElementById("play-btn").textContent = t("replay");
+                document.getElementById("play-btn").style.display = "block";
                 if (!info) info = countCubes(board);
                 finalBonusEl.style.color = "#fce4a8";
                 if (info.total === 0) {
@@ -1725,54 +1367,19 @@
                 const el = document.getElementById("startLB");
                 if (!el) return;
                 const lb = loadLeaderboard();
-                let html =
-                    '<div class="lbTitle">' + t("leaderboard") + "</div>";
+                let html = '<div class="lbTitle">' + t("leaderboard") + '</div>';
                 if (lb.length === 0) {
-                    html += '<div class="lbEmpty">' + t("noRecords") + "</div>";
+                    html += '<div class="lbEmpty">' + t("noRecords") + '</div>';
                 } else {
                     for (let i = 0; i < Math.min(lb.length, LB_MAX); i++) {
                         const e = lb[i],
-                            rankColor =
-                                i === 0
-                                    ? "#c8a8e8"
-                                    : i === 1
-                                      ? "#d0d0d0"
-                                      : i === 2
-                                        ? "#d4a574"
-                                        : "#888",
+                            rankColor = i === 0 ? "#c8a8e8" : i === 1 ? "#d0d0d0" : i === 2 ? "#d4a574" : "#888",
                             hasBoard = !!e.board,
                             isVic = !!e.perfectClear,
-                            cls =
-                                (hasBoard ? " clickable" : "") +
-                                (i % 2 === 0 ? " even" : "");
+                            cls = (hasBoard ? " clickable" : "") + (i % 2 === 0 ? " even" : "");
                         const dotCls = isVic ? "lbDot vic" : "lbDot norm";
-                        const dotTip = isVic
-                            ? ' data-tip="' +
-                              t("perfectClear").replace("+", "").trim() +
-                              '"'
-                            : "";
-                        html +=
-                            '<div class="lbRow' +
-                            cls +
-                            '" data-replay="' +
-                            (hasBoard ? i : "") +
-                            '"><span class="rank" style="color:' +
-                            rankColor +
-                            '">' +
-                            (i + 1) +
-                            '</span><span class="' +
-                            dotCls +
-                            '"' +
-                            dotTip +
-                            '></span><span class="sc">' +
-                            e.score.toLocaleString(getLocale()) +
-                            '</span><span class="dt">' +
-                            (e.date || "") +
-                            "</span>" +
-                            (hasBoard
-                                ? '<span class="lbReplay">↻</span>'
-                                : "") +
-                            "</div>";
+                        const dotTip = isVic ? ' data-tip="' + t("perfectClear").replace("+", "").trim() + '"' : "";
+                        html += '<div class="lbRow' + cls + '" data-replay="' + (hasBoard ? i : "") + '"><span class="rank" style="color:' + rankColor + '">' + (i + 1) + '</span><span class="' + dotCls + '"' + dotTip + '></span><span class="sc">' + e.score.toLocaleString(getLocale()) + '</span><span class="dt">' + esc(e.date || "") + '</span>' + (hasBoard ? '<span class="lbReplay">↻</span>' : '') + '</div>';
                     }
                 }
                 el.innerHTML = html;
@@ -1905,60 +1512,46 @@
                 return { r, c };
             }
 
-            boardCanvas.addEventListener(
-                "touchstart",
-                (e) => {
-                    e.preventDefault();
-                    initAudio();
-                    if (e.touches.length === 0) return;
-                    const touch = e.touches[0];
-                    const cell = getTouchCell(touch);
-                    if (!cell) return;
+            boardCanvas.addEventListener("touchstart", (e) => {
+                e.preventDefault();
+                initAudio();
+                if (e.touches.length === 0) return;
+                const touch = e.touches[0];
+                const cell = getTouchCell(touch);
+                if (!cell) return;
 
-                    // Check if the touched cell is part of the currently highlighted group
-                    if (hoverGroup.length >= 2 && touchHoverActive) {
-                        const isInGroup = hoverGroup.some(
-                            (g) => g.r === cell.r && g.c === cell.c,
-                        );
-                        if (isInGroup) {
-                            // Second tap on highlighted group → remove it
-                            handleClick(touch.clientX, touch.clientY);
-                            touchHoverActive = false;
-                            ensureAnimLoop();
-                            return;
-                        }
+                // Check if the touched cell is part of the currently highlighted group
+                if (hoverGroup.length >= 2 && touchHoverActive) {
+                    const isInGroup = hoverGroup.some(g => g.r === cell.r && g.c === cell.c);
+                    if (isInGroup) {
+                        // Second tap on highlighted group → remove it
+                        handleClick(touch.clientX, touch.clientY);
+                        touchHoverActive = false;
+                        ensureAnimLoop();
+                        return;
                     }
+                }
 
-                    // First tap or tap on different area → highlight group
-                    handleHover(touch.clientX, touch.clientY);
-                    touchHoverActive = true;
-                    ensureAnimLoop();
-                },
-                { passive: false },
-            );
+                // First tap or tap on different area → highlight group
+                handleHover(touch.clientX, touch.clientY);
+                touchHoverActive = true;
+                ensureAnimLoop();
+            }, { passive: false });
 
-            boardCanvas.addEventListener(
-                "touchmove",
-                (e) => {
-                    e.preventDefault();
-                    if (e.touches.length === 0) return;
-                    const touch = e.touches[0];
-                    handleHover(touch.clientX, touch.clientY);
-                    touchHoverActive = true;
-                    ensureAnimLoop();
-                },
-                { passive: false },
-            );
+            boardCanvas.addEventListener("touchmove", (e) => {
+                e.preventDefault();
+                if (e.touches.length === 0) return;
+                const touch = e.touches[0];
+                handleHover(touch.clientX, touch.clientY);
+                touchHoverActive = true;
+                ensureAnimLoop();
+            }, { passive: false });
 
-            boardCanvas.addEventListener(
-                "touchend",
-                (e) => {
-                    e.preventDefault();
-                    // If no more touches, keep the current hover visible
-                    // (it will be cleared on next touchstart if user taps elsewhere)
-                },
-                { passive: false },
-            );
+            boardCanvas.addEventListener("touchend", (e) => {
+                e.preventDefault();
+                // If no more touches, keep the current hover visible
+                // (it will be cleared on next touchstart if user taps elsewhere)
+            }, { passive: false });
 
             boardCanvas.addEventListener("touchcancel", (e) => {
                 if (hoverGroup.length > 0) {
@@ -2006,10 +1599,12 @@
                 compactAnimMap.clear();
                 startOverlay.classList.add("hidden");
                 gameoverOverlay.classList.add("hidden");
-                document.getElementById("play-btn").textContent = t("replay");
+                document.getElementById("play-btn").style.display = "none";
             }
             function startNewGame() {
                 if (started && !gameOver && score > 0) saveScore(score);
+                bonusTimers.forEach((id) => clearTimeout(id));
+                bonusTimers = [];
                 initAudio();
                 sfxStart();
                 if (firstGame) {
@@ -2028,6 +1623,8 @@
                 const lb = loadLeaderboard();
                 if (index < 0 || index >= lb.length || !lb[index].board) return;
                 if (started && !gameOver && score > 0) saveScore(score);
+                bonusTimers.forEach((id) => clearTimeout(id));
+                bonusTimers = [];
                 initAudio();
                 sfxStart();
                 resetGameState(lb[index].board, index);
@@ -2036,13 +1633,12 @@
                 ensureAnimLoop();
             }
 
+
             startOverlay.addEventListener("click", (e) => {
                 if (e.target === startOverlay)
                     startOverlay.classList.add("hidden");
             });
-            document
-                .getElementById("play-btn")
-                .addEventListener("click", startNewGame);
+            document.getElementById("play-btn").addEventListener("click", startNewGame);
 
             document
                 .getElementById("undo-btn")
@@ -2064,15 +1660,13 @@
             updateUI();
             render();
             document.getElementById("play-btn").style.display = "block";
-            document.getElementById("play-btn").textContent = t("play");
             renderOverlayLeaderboard();
             animFrame = requestAnimationFrame(animLoop);
         </script>
-
-        <script>
-            if ("serviceWorker" in navigator) {
-                navigator.serviceWorker.register("sw.js").catch(function () {});
-            }
-        </script>
-    </body>
+    
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){})}
+</script>
+</body>
 </html>
+                                                                                                         
