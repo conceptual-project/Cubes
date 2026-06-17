@@ -1039,7 +1039,7 @@
 
                 rebuildHoverSet();
                 rebuildRemovingSet();
-                const now = Date.now();
+                const now = performance.now();
 
                 // Draw board cells
                 for (let r = 0; r < ROWS; r++) {
@@ -1155,7 +1155,7 @@
             function animLoop() {
                 let needRender = false;
                 if (animPhase === "removing") {
-                    if (Date.now() - removingStart >= REMOVE_DURATION) {
+                    if (performance.now() - removingStart >= REMOVE_DURATION) {
                         for (const { r, c } of removingCells)
                             board[r * COLS + c] = -1;
                         const oldBoard = cloneBoard(board);
@@ -1166,7 +1166,7 @@
                             fallAnimMap.set(fa.col + "," + fa.toRow, fa);
                         removingCells = [];
                         _removingSetKey = "";
-                        fallStartTime = Date.now();
+                        fallStartTime = performance.now();
                         if (fallAnims.length > 0) animPhase = "falling";
                         else startCompactPhase();
                     }
@@ -1176,7 +1176,7 @@
                     let allDone = true;
                     for (const fa of fallAnims) {
                         if (
-                            (Date.now() - fallStartTime) / 1000 <
+                            (performance.now() - fallStartTime) / 1000 <
                             (Math.abs(fa.toRow - fa.fromRow) * CELL) /
                                 FALL_SPEED
                         ) {
@@ -1193,7 +1193,7 @@
                     needRender = true;
                 }
                 if (animPhase === "compacting") {
-                    if (Date.now() - compactStartTime >= COMPACT_DURATION) {
+                    if (performance.now() - compactStartTime >= COMPACT_DURATION) {
                         compactAnims = [];
                         compactAnimMap.clear();
                         animPhase = "idle";
@@ -1221,7 +1221,7 @@
                     compactAnimMap.set(ca.toCol + "," + ca.row, ca);
                 if (compactAnims.length > 0) {
                     sfxCompact();
-                    compactStartTime = Date.now();
+                    compactStartTime = performance.now();
                     animPhase = "compacting";
                 } else {
                     animPhase = "idle";
@@ -1463,7 +1463,7 @@
                     color: board[r * COLS + c],
                 }));
                 _removingSetKey = "";
-                removingStart = Date.now();
+                removingStart = performance.now();
                 animPhase = "removing";
                 hoverGroup = [];
                 _hoverSetKey = "";
